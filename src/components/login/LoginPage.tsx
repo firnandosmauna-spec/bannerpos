@@ -30,20 +30,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     // Auto-append @example.com if it's just a username
     const loginEmail = email.includes('@') ? email : `${email.replace(/\s+/g, '').toLowerCase()}@example.com`;
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
 
-    if (authError) {
-      setIsLoading(false);
-      setError(authError.message === "Invalid login credentials" ? "Email atau password salah." : `Login gagal: ${authError.message}`);
-      return;
-    }
+      if (error) throw error;
 
-    if (data.user) {
-      const { data: profile } = await supabase.from("profiles").select("name").eq("id", data.user.id).single();
+      // Cek profile role untuk redirect (opsional, sudah dihandle di App.tsx/home.tsx)
+      const { data: profile } = await supabase.from("profiles").select("name").eq("id", data.user.id).maybeSingle();
       onLogin(profile?.name || email.split('@')[0]);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message === "Invalid login credentials" ? "Email atau password salah." : `Login gagal: ${err.message}`);
     }
   };
 

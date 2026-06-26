@@ -185,7 +185,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
       paid_amount: paidAmount,
       remaining_amount: Math.max(0, total - paidAmount),
       payment_method: paymentMethod,
-      status: paymentMethod === "DP" || paymentMethod === "Piutang" ? "dp" : "selesai",
+      status: "pending", // Semua order masuk antrian produksi dulu
     };
 
     try {
@@ -445,7 +445,21 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                     fetchLogs={fetchMachineLogs}
                   />
                 )}
-                {currentView === "production-tracking" && <ProductionTrackingView />}
+                {currentView === "production-tracking" && (
+                  <ProductionTrackingView onPrintSPK={(order) => {
+                    setPrintData({
+                      orderNo: order.order_no,
+                      kasirName,
+                      items: [{ name: order.items_summary, qty: 1, price: 0, total: 0 }],
+                      total: 0,
+                      paidAmount: 0,
+                      paymentMethod: "-",
+                      date: new Date(order.created_at),
+                      isSPK: true
+                    });
+                    setTimeout(() => window.print(), 200);
+                  }} />
+                )}
                 {currentView === "report-transactions" && (
                   <TransactionHistoryView onPrint={(data) => {
                     setPrintData(data);

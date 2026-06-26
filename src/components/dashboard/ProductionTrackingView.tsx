@@ -7,7 +7,11 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-export default function ProductionTrackingView() {
+interface ProductionTrackingViewProps {
+  onPrintSPK?: (order: any) => void;
+}
+
+export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackingViewProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
@@ -58,6 +62,7 @@ export default function ProductionTrackingView() {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'pending': 
+      case 'dp': // Legacy support for orders created before the fix
         return { label: 'Menunggu', color: 'bg-orange-500', icon: <Clock size={14} />, next: 'processing', nextLabel: 'Proses Cetak' };
       case 'processing': 
         return { label: 'Proses Cetak', color: 'bg-blue-500', icon: <PlayCircle size={14} />, next: 'ready', nextLabel: 'Siap Ambil' };
@@ -163,6 +168,7 @@ export default function ProductionTrackingView() {
 
                   <div className="p-3 bg-[#F8FAFC] flex gap-2">
                     <button 
+                      onClick={() => onPrintSPK && onPrintSPK(order)}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition-all text-xs font-bold"
                     >
                       <Printer size={14} /> Cetak SPK

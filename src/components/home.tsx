@@ -35,7 +35,7 @@ export default function Home() {
 
   const fetchProfile = async (user: any) => {
     // Gunakan select("*") agar tidak error 400 jika kolom permissions belum dibuat di database
-    const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
     
     if (error) {
       console.error("Gagal mengambil profil:", error);
