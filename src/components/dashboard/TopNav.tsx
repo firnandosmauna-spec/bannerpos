@@ -116,7 +116,6 @@ export default function TopNav({
             onClick={(e) => {
               e.stopPropagation();
               setShowDropdown(!showDropdown);
-              setShowMasterDropdown(false);
             }}
             className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-all duration-150"
             style={{
@@ -275,7 +274,6 @@ export default function TopNav({
                 </button>
                 <button
                   onClick={() => {
-                    setShowLogoutConfirm(false);
                     onLogout();
                   }}
                   className="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all duration-150"

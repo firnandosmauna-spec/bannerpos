@@ -205,6 +205,8 @@ export interface User {
   name: string;
   role: "admin" | "kasir";
   lastLogin?: string;
+  password?: string;
+  permissions?: string[];
 }
 
 export const INITIAL_MATERIALS: Material[] = [

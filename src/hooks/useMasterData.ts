@@ -90,6 +90,7 @@ export function useMasterData() {
           username: u.email?.split("@")[0] || "user",
           name: u.name || "User",
           role: u.role?.toLowerCase() === "admin" ? "admin" : "kasir",
+          permissions: u.permissions || [],
         })));
       }
 
@@ -198,10 +199,18 @@ export function useMasterData() {
   };
 
   const addProfile = async (payload: any) => {
+    // We use a secondary client so that when email confirmations are disabled, 
+    // the newly created user doesn't automatically log out the current admin.
+    const secondarySupabase = (await import('@supabase/supabase-js')).createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      { auth: { persistSession: false } }
+    );
+
     // 1. Create auth user first
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await secondarySupabase.auth.signUp({
       email: payload.email,
-      password: "password123", // Default password for new users
+      password: payload.password || "password123", // Use provided password
     });
 
     if (authError) {
@@ -210,12 +219,13 @@ export function useMasterData() {
     }
 
     if (authData.user) {
-      // 2. Insert into profiles with the new auth.users ID
+      // 2. Insert into profiles with the new auth.users ID using main client
       const { error: profileError } = await supabase.from("profiles").insert([{
         id: authData.user.id,
         email: payload.email,
         name: payload.name,
-        role: payload.role
+        role: payload.role,
+        permissions: payload.permissions || []
       }]);
 
       if (!profileError) {

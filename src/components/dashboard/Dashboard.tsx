@@ -29,12 +29,14 @@ import { TrendingUp, Users, Package, DollarSign } from "lucide-react";
 
 interface DashboardProps {
   kasirName: string;
+  kasirRole?: string;
+  kasirPermissions?: string[];
   onLogout: () => void;
 }
 
 let orderCounter = 1;
 
-export default function Dashboard({ kasirName, onLogout }: DashboardProps) {
+export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermissions = [], onLogout }: DashboardProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const [successMessage, setSuccessMessage] = useState("");
@@ -207,7 +209,7 @@ export default function Dashboard({ kasirName, onLogout }: DashboardProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={onLogout} />
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={onLogout} role={kasirRole} permissions={kasirPermissions} />
 
       <div className="flex flex-col flex-1 min-w-0">
         <TopNav 
@@ -403,8 +405,8 @@ export default function Dashboard({ kasirName, onLogout }: DashboardProps) {
                 {currentView === "settings" && (
                   <SettingsView
                     users={users}
-                    onAddUser={(item) => addProfile({ email: `${item.username}@example.com`, name: item.name, role: item.role })}
-                    onUpdateUser={(item) => updateItem("profiles", item.id, { email: `${item.username}@example.com`, name: item.name, role: item.role })}
+                    onAddUser={(item) => addProfile({ email: `${item.username.replace(/\s+/g, '').toLowerCase()}@example.com`, name: item.name, role: item.role, password: item.password, permissions: item.permissions || [] })}
+                    onUpdateUser={(item) => updateItem("profiles", item.id, { email: `${item.username.replace(/\s+/g, '').toLowerCase()}@example.com`, name: item.name, role: item.role, permissions: item.permissions || [] })}
                     onDeleteUser={(id) => deleteItem("profiles", id)}
                   />
                 )}

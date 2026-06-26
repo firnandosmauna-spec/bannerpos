@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [kasirName, setKasirName] = useState<string | null>(null);
+  const [kasirRole, setKasirRole] = useState<string>("kasir");
+  const [kasirPermissions, setKasirPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,8 +34,21 @@ export default function Home() {
   }, []);
 
   const fetchProfile = async (user: any) => {
-    const { data } = await supabase.from("profiles").select("name").eq("id", user.id).single();
+    // Gunakan select("*") agar tidak error 400 jika kolom permissions belum dibuat di database
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    
+    if (error) {
+      console.error("Gagal mengambil profil:", error);
+    }
+    
+    const role = data?.role?.toLowerCase() || (user.email === 'admin@example.com' ? 'admin' : 'kasir');
+    
     setKasirName(data?.name || user.email?.split('@')[0] || "User");
+    setKasirRole(role);
+    
+    // Jika permissions kosong atau belum ada, berikan akses dasar kasir agar menu tidak hilang semua
+    const defaultKasirPerms = ["dashboard", "pos", "production-tracking", "report-transactions", "master-produk", "master-kategori", "master-bahan", "stock-card"];
+    setKasirPermissions(data?.permissions || defaultKasirPerms);
     setLoading(false);
   };
 
@@ -53,30 +68,11 @@ export default function Home() {
 
   return (
     <div style={{ backgroundColor: "#1A1A1F", minHeight: "100vh" }}>
-      <AnimatePresence mode="wait">
-        {!kasirName ? (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <LoginPage onLogin={handleLogin} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, scale: 1.01 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            style={{ height: "100vh" }}
-          >
-            <Dashboard kasirName={kasirName} onLogout={handleLogout} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!kasirName ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : (
+        <Dashboard kasirName={kasirName} kasirRole={kasirRole} kasirPermissions={kasirPermissions} onLogout={handleLogout} />
+      )}
     </div>
   );
 }

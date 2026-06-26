@@ -116,7 +116,39 @@ function Modal({ item, onClose, onSave }: { item: UserType | null, onClose: () =
     username: item?.username || "",
     name: item?.name || "",
     role: item?.role || "kasir",
+    password: "",
+    permissions: item?.permissions || ["dashboard", "pos", "production-tracking", "report-transactions", "master-produk", "master-kategori", "master-bahan", "stock-card"],
   });
+
+  const availablePermissions = [
+    { id: "dashboard", label: "Dashboard Utama" },
+    { id: "pos", label: "Kasir / POS" },
+    { id: "production-tracking", label: "Antrian Produksi" },
+    { id: "report-transactions", label: "Riwayat Transaksi" },
+    { id: "master-produk", label: "Katalog Produk" },
+    { id: "master-bahan", label: "Stok Bahan" },
+    { id: "stock-card", label: "Kartu Stok" },
+    { id: "purchase-materials", label: "Pembelian Bahan" },
+    { id: "master-mesin", label: "Mesin Cetak" },
+    { id: "master-karyawan", label: "Master Karyawan" },
+    { id: "master-pelanggan", label: "Master Pelanggan" },
+    { id: "master-supplier", label: "Master Supplier" },
+    { id: "report-sales", label: "Laporan Penjualan" },
+    { id: "report-purchases", label: "Laporan Pembelian" },
+    { id: "report-damaged", label: "Laporan Barang Rusak" },
+    { id: "report-profit", label: "Laporan Laba & Rugi" },
+  ];
+
+  const handleTogglePermission = (id: string) => {
+    setFormData(prev => {
+      const current = prev.permissions;
+      if (current.includes(id)) {
+        return { ...prev, permissions: current.filter(p => p !== id) };
+      } else {
+        return { ...prev, permissions: [...current, id] };
+      }
+    });
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
@@ -128,9 +160,10 @@ function Modal({ item, onClose, onSave }: { item: UserType | null, onClose: () =
           <div>
             <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Username</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={14} />
-              <input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all" placeholder="Contoh: kasir01" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" size={14} />
+              <input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} disabled={!!item} className={`w-full border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none transition-all ${item ? 'bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed' : 'bg-[#F8FAFC] text-[#1E293B] focus:border-[#FF6B1A]'}`} placeholder="Contoh: kasir01" />
             </div>
+            {item && <p className="text-[10px] text-[#8A8A95] mt-1.5">* Username tidak dapat diubah setelah akun dibuat.</p>}
           </div>
           <div>
             <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Nama Lengkap</label>
@@ -139,16 +172,53 @@ function Modal({ item, onClose, onSave }: { item: UserType | null, onClose: () =
               <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all" placeholder="Masukkan nama lengkap" />
             </div>
           </div>
+          
+          {item ? (
+            <div>
+              <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" size={14} />
+                <input type="password" value="••••••••" disabled className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#94A3B8] outline-none cursor-not-allowed" />
+              </div>
+              <p className="text-[10px] text-[#8A8A95] mt-1.5">* Password dienkripsi dengan aman oleh sistem. Hanya dapat diubah oleh pemilik akun saat login.</p>
+            </div>
+          ) : (
+            <div>
+              <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={14} />
+                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all" placeholder="Minimal 6 karakter (opsional)" />
+              </div>
+            </div>
+          )}
           <div>
             <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Hak Akses (Role)</label>
             <div className="relative">
               <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={14} />
               <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as any })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all">
                 <option value="admin">Admin (Akses Penuh)</option>
-                <option value="kasir">Kasir (Akses Transaksi)</option>
+                <option value="kasir">Kasir (Akses Terbatas)</option>
               </select>
             </div>
           </div>
+
+          <AnimatePresence>
+            {formData.role === "kasir" && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                <div className="pt-2">
+                  <label className="text-[10px] font-bold text-[#64748B] uppercase mb-2 block tracking-wider">Kustomisasi Menu Kasir</label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar p-1">
+                    {availablePermissions.map(perm => (
+                      <label key={perm.id} className="flex items-center gap-2 text-xs text-[#1E293B] cursor-pointer hover:bg-[#F8FAFC] p-1.5 rounded-lg border border-transparent hover:border-[#E2E8F0] transition-all">
+                        <input type="checkbox" checked={formData.permissions.includes(perm.id)} onChange={() => handleTogglePermission(perm.id)} className="rounded text-[#FF6B1A] focus:ring-[#FF6B1A]" />
+                        <span className="truncate">{perm.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="p-6 border-t border-[#E2E8F0] flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#E2E8F0] text-[#1E293B] text-sm font-medium hover:bg-[#F8FAFC] transition-all">Batal</button>

@@ -27,8 +27,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
 
+    // Auto-append @example.com if it's just a username
+    const loginEmail = email.includes('@') ? email : `${email.replace(/\s+/g, '').toLowerCase()}@example.com`;
+
     const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
 
