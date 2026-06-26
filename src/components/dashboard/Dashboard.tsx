@@ -99,10 +99,10 @@ export default function Dashboard({ kasirName, onLogout }: DashboardProps) {
         designNote: "",
         pricePerM2: product.pricePerM2,
         unit: product.unit,
-        totalPrice: area * product.pricePerM2 + (cartItems.length === 0 && initialDesignData?.hasDesign ? initialDesignData.fee : 0),
-        hasDesignRequest: cartItems.length === 0 && initialDesignData?.hasDesign,
-        designFee: cartItems.length === 0 && initialDesignData?.hasDesign ? initialDesignData.fee : 0,
-        designNote: cartItems.length === 0 && initialDesignData?.hasDesign ? initialDesignData.note : "",
+        totalPrice: area * product.pricePerM2 + (cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.fee || 0) : 0),
+        hasDesignRequest: cartItems.length === 0 && (initialDesignData?.hasDesign ?? false),
+        designFee: cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.fee || 0) : 0,
+        designNote: cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.note || "") : "",
       };
       setCartItems((prev) => [...prev, newItem]);
     }
