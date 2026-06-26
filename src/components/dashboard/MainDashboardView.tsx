@@ -21,7 +21,7 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(val);
 
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto custom-scrollbar p-6 space-y-6">
+    <div className="flex flex-col h-full bg-[#F8FAFC] overflow-y-auto custom-scrollbar p-4 lg:p-5 space-y-4">
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
@@ -35,7 +35,7 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Omzet", value: stats.totalSales, icon: DollarSign, color: "text-green-600", bg: "bg-green-500/10", trend: "+12.5%" },
           { label: "Order Hari Ini", value: stats.todayOrders, icon: ShoppingCart, color: "text-[#FF6B1A]", bg: "bg-[#FF6B1A]/10", trend: "+8.2%" },
@@ -47,9 +47,9 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E2E8F0] shadow-sm hover:shadow-md transition-all group relative overflow-hidden"
+            className="bg-[#FFFFFF] p-4 lg:p-5 rounded-2xl border border-[#E2E8F0] shadow-sm hover:shadow-md transition-all group relative overflow-hidden"
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <div className={`w-12 h-12 rounded-2xl ${item.bg} flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
                 <item.icon size={24} />
               </div>
@@ -58,18 +58,18 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
               </span>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">{item.label}</p>
-              <h4 className="text-xl font-black text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>{item.value}</h4>
+              <p className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest mb-1">{item.label}</p>
+              <h4 className="text-lg font-black text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>{item.value}</h4>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Orders Table */}
         <div className="lg:col-span-2 bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-[#E2E8F0] flex justify-between items-center bg-[#F8FAFC]/50">
-            <h3 className="font-bold text-[#1E293B] flex items-center gap-2">
+          <div className="p-4 border-b border-[#E2E8F0] flex justify-between items-center bg-[#F8FAFC]/50">
+            <h3 className="font-bold text-sm text-[#1E293B] flex items-center gap-2">
               <Clock size={18} className="text-[#FF6B1A]" /> Transaksi Terakhir
             </h3>
             <button className="text-[10px] font-bold text-[#FF6B1A] hover:underline uppercase tracking-wider">Lihat Semua</button>
@@ -78,19 +78,19 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-[#F8FAFC]">
-                  <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">No. Order</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Item</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Total</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Status</th>
+                  <th className="px-4 py-3 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">No. Order</th>
+                  <th className="px-4 py-3 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Item</th>
+                  <th className="px-4 py-3 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Total</th>
+                  <th className="px-4 py-3 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
                 {recentOrders.slice(0, 5).map((order) => (
                   <tr key={order.id} className="hover:bg-[#F8FAFC] transition-colors">
-                    <td className="px-6 py-4 text-xs font-bold text-[#1E293B]">{order.orderNo}</td>
-                    <td className="px-6 py-4 text-xs text-[#64748B] truncate max-w-[200px]">{order.items}</td>
-                    <td className="px-6 py-4 text-xs font-bold text-[#1E293B]">{formatCurrency(order.total)}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 text-xs font-bold text-[#1E293B]">{order.orderNo}</td>
+                    <td className="px-4 py-3 text-[11px] text-[#64748B] truncate max-w-[200px]">{order.items}</td>
+                    <td className="px-4 py-3 text-xs font-bold text-[#1E293B]">{formatCurrency(order.total)}</td>
+                    <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${order.status === 'selesai' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-[#FF6B1A]'}`}>
                         {order.status}
                       </span>
@@ -103,10 +103,10 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
         </div>
 
         {/* Alerts & Production Status */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Low Stock Alert */}
-          <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-            <h3 className="font-bold text-[#1E293B] flex items-center gap-2 mb-4">
+          <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] shadow-sm p-4">
+            <h3 className="font-bold text-sm text-[#1E293B] flex items-center gap-2 mb-3">
               <AlertTriangle size={18} className="text-red-500" /> Peringatan Stok Rendah
             </h3>
             <div className="space-y-3">
@@ -128,8 +128,8 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
           </div>
 
           {/* Machine Status */}
-          <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-            <h3 className="font-bold text-[#1E293B] flex items-center gap-2 mb-4">
+          <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] shadow-sm p-4">
+            <h3 className="font-bold text-sm text-[#1E293B] flex items-center gap-2 mb-3">
               <Activity size={18} className="text-blue-500" /> Status Produksi
             </h3>
             <div className="space-y-4">
