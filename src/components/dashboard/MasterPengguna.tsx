@@ -115,7 +115,7 @@ function Modal({ item, onClose, onSave }: { item: UserType | null, onClose: () =
   const [formData, setFormData] = useState({
     username: item?.username || "",
     name: item?.name || "",
-    role: item?.role || "kasir",
+    role: item?.role?.toLowerCase() || "kasir",
     password: "",
     permissions: item?.permissions || ["dashboard", "pos", "production-tracking", "report-transactions", "master-produk", "master-kategori", "master-bahan", "stock-card"],
   });
@@ -203,7 +203,7 @@ function Modal({ item, onClose, onSave }: { item: UserType | null, onClose: () =
           </div>
 
           <AnimatePresence>
-            {formData.role === "kasir" && (
+            {formData.role.toLowerCase() === "kasir" && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                 <div className="pt-2">
                   <label className="text-[10px] font-bold text-[#64748B] uppercase mb-2 block tracking-wider">Kustomisasi Menu Kasir</label>

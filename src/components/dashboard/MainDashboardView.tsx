@@ -37,10 +37,10 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Omzet", value: stats.totalSales, icon: DollarSign, color: "text-green-600", bg: "bg-green-500/10", trend: "+12.5%" },
-          { label: "Order Hari Ini", value: stats.todayOrders, icon: ShoppingCart, color: "text-[#FF6B1A]", bg: "bg-[#FF6B1A]/10", trend: "+8.2%" },
-          { label: "Total Produk", value: stats.totalProducts, icon: Package, color: "text-blue-600", bg: "bg-blue-500/10", trend: "Stabil" },
-          { label: "Pelanggan Aktif", value: stats.activeCustomers, icon: Users, color: "text-purple-600", bg: "bg-purple-500/10", trend: "+4.1%" },
+          { label: "Omzet Hari Ini", value: stats.totalSales, icon: DollarSign, color: "text-green-600", bg: "bg-green-500/10" },
+          { label: "Order Hari Ini", value: stats.todayOrders, icon: ShoppingCart, color: "text-[#FF6B1A]", bg: "bg-[#FF6B1A]/10" },
+          { label: "Total Produk", value: stats.totalProducts, icon: Package, color: "text-blue-600", bg: "bg-blue-500/10" },
+          { label: "Pelanggan Aktif", value: stats.activeCustomers, icon: Users, color: "text-purple-600", bg: "bg-purple-500/10" },
         ].map((item, idx) => (
           <motion.div
             key={idx}
@@ -53,9 +53,6 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
               <div className={`w-12 h-12 rounded-2xl ${item.bg} flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
                 <item.icon size={24} />
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${item.trend.startsWith('+') ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
-                {item.trend}
-              </span>
             </div>
             <div>
               <p className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest mb-1">{item.label}</p>

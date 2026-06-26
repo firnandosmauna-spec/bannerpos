@@ -7,7 +7,11 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-export default function TransactionHistoryView() {
+interface TransactionHistoryViewProps {
+  onPrint?: (data: any) => void;
+}
+
+export default function TransactionHistoryView({ onPrint }: TransactionHistoryViewProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -152,8 +156,24 @@ export default function TransactionHistoryView() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-[#FF6B1A] rounded-lg transition-all shadow-sm">
-                      <Eye size={14} />
+                    <button 
+                      onClick={() => {
+                        if (onPrint) {
+                          onPrint({
+                            orderNo: order.order_no,
+                            kasirName: "Kasir",
+                            items: [{ name: order.items_summary, qty: 1, price: order.total_amount, total: order.total_amount }],
+                            total: order.total_amount,
+                            paidAmount: order.paid_amount,
+                            paymentMethod: order.payment_method,
+                            date: new Date(order.created_at)
+                          });
+                        }
+                      }}
+                      className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-[#FF6B1A] rounded-lg transition-all shadow-sm"
+                      title="Cetak Ulang Nota"
+                    >
+                      <Printer size={14} />
                     </button>
                   </td>
                 </tr>

@@ -8,6 +8,7 @@ interface CartPanelProps {
   onUpdateItem: (id: string, updates: Partial<CartItem>) => void;
   onRemoveItem: (id: string) => void;
   onCheckout: (paymentMethod: string, paidAmount: number, manualInvoiceNo: string) => void;
+  onPreviewInvoice?: (paymentMethod: string, paidAmount: number) => void;
 }
 
 export default function CartPanel({
@@ -15,6 +16,7 @@ export default function CartPanel({
   onUpdateItem,
   onRemoveItem,
   onCheckout,
+  onPreviewInvoice,
 }: CartPanelProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
@@ -125,7 +127,7 @@ export default function CartPanel({
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <AnimatePresence>
               {items.map((item) => (
                 <motion.div
@@ -134,7 +136,7 @@ export default function CartPanel({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="rounded-xl overflow-hidden shadow-sm"
+                  className="rounded-lg overflow-hidden shadow-sm"
                   style={{
                     backgroundColor: "#F8FAFC",
                     border: "1px solid #E2E8F0",
@@ -142,7 +144,7 @@ export default function CartPanel({
                 >
                   {/* Item Header */}
                   <div className="px-2 py-1.5">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p
                           className="text-[10px] font-bold truncate"
@@ -154,7 +156,7 @@ export default function CartPanel({
                           {item.productName}
                         </p>
                         <p
-                          className="text-[8px] mt-0.5"
+                          className="text-[9px] mt-0.5"
                           style={{
                             fontFamily: "JetBrains Mono, monospace",
                             color: "#64748B",
@@ -162,66 +164,42 @@ export default function CartPanel({
                         >
                           {item.width}×{item.height}cm · {item.finishing}
                           {item.hasDesignRequest && (
-                            <span className="ml-1.5 px-1 py-0.5 rounded-[4px] bg-[#FF6B1A]/10 text-[#FF6B1A] text-[6px] font-bold uppercase tracking-tighter border border-[#FF6B1A]/20">
-                              + Desain
+                            <span className="ml-1.5 px-1 py-[1px] rounded bg-[#FF6B1A]/10 text-[#FF6B1A] text-[7px] font-bold uppercase border border-[#FF6B1A]/20">
+                              +Desain
                             </span>
                           )}
                         </p>
-                        
-                        {/* Qty Controls */}
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <button
-                            onClick={() =>
-                              updateItemAndRecalc(item.id, {
-                                quantity: Math.max(1, item.quantity - 1),
-                              })
-                            }
-                            className="w-4 h-4 rounded flex items-center justify-center"
-                            style={{
-                              backgroundColor: "rgba(255,255,255,0.06)",
-                              border: "1px solid #E2E8F0",
-                              color: "#8A8A95",
-                            }}
-                          >
-                            <Minus size={8} />
-                          </button>
-                          <span
-                            className="text-[10px] font-semibold w-4 text-center"
-                            style={{
-                              fontFamily: "JetBrains Mono, monospace",
-                              color: "#1E293B",
-                            }}
-                          >
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateItemAndRecalc(item.id, {
-                                quantity: item.quantity + 1,
-                              })
-                            }
-                            className="w-4 h-4 rounded flex items-center justify-center"
-                            style={{
-                              backgroundColor: "rgba(255,107,26,0.15)",
-                              color: "#FF6B1A",
-                            }}
-                          >
-                            <Plus size={8} />
-                          </button>
-                        </div>
                       </div>
                       
                       {/* Price & Actions */}
-                      <div className="flex flex-col items-end gap-1.5">
-                        <p
-                          className="text-[10px] font-bold"
-                          style={{
-                            fontFamily: "JetBrains Mono, monospace",
-                            color: "#FF6B1A",
-                          }}
-                        >
-                          {formatCurrency(item.totalPrice)}
-                        </p>
+                      <div className="flex flex-col items-end justify-between h-full gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          {/* Compact Qty Controls */}
+                          <div className="flex items-center gap-1 bg-[#FFFFFF] border border-[#E2E8F0] rounded p-0.5">
+                            <button
+                              onClick={() => updateItemAndRecalc(item.id, { quantity: Math.max(1, item.quantity - 1) })}
+                              className="w-3.5 h-3.5 rounded-sm flex items-center justify-center text-[#8A8A95] hover:bg-[#F8FAFC]"
+                            >
+                              <Minus size={8} />
+                            </button>
+                            <span className="text-[9px] font-bold w-3 text-center" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateItemAndRecalc(item.id, { quantity: item.quantity + 1 })}
+                              className="w-3.5 h-3.5 rounded-sm flex items-center justify-center bg-[#FF6B1A]/10 text-[#FF6B1A] hover:bg-[#FF6B1A]/20"
+                            >
+                              <Plus size={8} />
+                            </button>
+                          </div>
+                          
+                          <p
+                            className="text-[10px] font-bold w-[60px] text-right"
+                            style={{ fontFamily: "JetBrains Mono, monospace", color: "#FF6B1A" }}
+                          >
+                            {formatCurrency(item.totalPrice)}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() =>
@@ -514,23 +492,19 @@ export default function CartPanel({
 
       {/* Summary & Payment */}
       {items.length > 0 && (
-        <div className="p-3 bg-[#FFFFFF] border-t border-[#E2E8F0] space-y-2.5">
+        <div className="p-2 bg-[#FFFFFF] border-t border-[#E2E8F0] space-y-1.5">
           {/* Summary */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <div className="flex justify-between items-center">
               <span
-                className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider"
+                className="text-[9px] font-bold text-[#64748B] uppercase tracking-wider"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 Subtotal
               </span>
               <span
-                className="text-sm font-semibold"
-                style={{
-                  fontFamily: "JetBrains Mono, monospace",
-                  color: "#FF6B1A",
-                  fontSize: "16px"
-                }}
+                className="text-xs font-semibold"
+                style={{ fontFamily: "JetBrains Mono, monospace", color: "#FF6B1A" }}
               >
                 {formatCurrency(subtotal)}
               </span>
@@ -539,71 +513,45 @@ export default function CartPanel({
             {/* Discount */}
             <div className="flex justify-between items-center">
               <span
-                className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider"
+                className="text-[9px] font-bold text-[#64748B] uppercase tracking-wider"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 Potongan (%)
               </span>
-              <input
-                type="number"
-                value={discount || ""}
-                onChange={(e) =>
-                  setDiscount(
-                    Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
-                  )
-                }
-                placeholder="0"
-                className="w-16 rounded-lg px-2 py-1 text-[10px] text-right outline-none"
-                style={{
-                  backgroundColor: "#F8FAFC",
-                  border: "1px solid #E2E8F0",
-                  color: "#FF6B1A",
-                  fontFamily: "JetBrains Mono, monospace",
-                }}
-              />
+              <div className="flex items-center gap-2">
+                {discount > 0 && (
+                  <span className="text-[9px] font-semibold text-[#2ECC71]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                    -{formatCurrency(discountAmount)}
+                  </span>
+                )}
+                <input
+                  type="number"
+                  value={discount || ""}
+                  onChange={(e) => setDiscount(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                  placeholder="0"
+                  className="w-12 rounded px-1.5 py-0.5 text-[10px] text-right outline-none"
+                  style={{
+                    backgroundColor: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    color: "#FF6B1A",
+                    fontFamily: "JetBrains Mono, monospace",
+                  }}
+                />
+              </div>
             </div>
 
-            {discount > 0 && (
-              <div className="flex justify-between items-center">
-                <span
-                  className="text-[10px]"
-                  style={{
-                    fontFamily: "Space Grotesk, sans-serif",
-                    color: "#8A8A95",
-                  }}
-                >
-                  Hemat
-                </span>
-                <span
-                  className="text-[10px] font-semibold"
-                  style={{
-                    fontFamily: "JetBrains Mono, monospace",
-                    color: "#2ECC71",
-                  }}
-                >
-                  -{formatCurrency(discountAmount)}
-                </span>
-              </div>
-            )}
-
-            <div
-              className="h-px"
-              style={{ backgroundColor: "#E2E8F0" }}
-            />
+            <div className="h-px" style={{ backgroundColor: "#E2E8F0" }} />
 
             <div className="flex justify-between items-center">
               <span
-                className="text-xs font-bold text-[#1E293B]"
+                className="text-[11px] font-bold text-[#1E293B]"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 Total
               </span>
               <span
-                className="text-base font-bold"
-                style={{
-                  fontFamily: "JetBrains Mono, monospace",
-                  color: "#FF6B1A",
-                }}
+                className="text-sm font-bold"
+                style={{ fontFamily: "JetBrains Mono, monospace", color: "#FF6B1A" }}
               >
                 {formatCurrency(total)}
               </span>
@@ -640,16 +588,7 @@ export default function CartPanel({
 
           {/* Payment Method */}
           <div>
-            <p
-              className="text-xs mb-2"
-              style={{
-                fontFamily: "Space Grotesk, sans-serif",
-                color: "#8A8A95",
-              }}
-            >
-              Metode Pembayaran
-            </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-4 gap-1">
               {paymentMethods.map((method) => (
                 <button
                   key={method}
@@ -658,26 +597,19 @@ export default function CartPanel({
                     if (method === "QRIS") setPaidAmount(total.toString());
                     else if (method === "Piutang") setPaidAmount("0");
                   }}
-                  className="rounded-xl py-2.5 text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2"
+                  className="rounded py-1 text-[9px] font-bold transition-all duration-200 flex items-center justify-center gap-1"
                   style={{
                     fontFamily: "Space Grotesk, sans-serif",
-                    backgroundColor:
-                      paymentMethod === method
-                        ? "rgba(255,107,26,0.15)"
-                        : "#F8FAFC",
-                    color:
-                      paymentMethod === method ? "#FF6B1A" : "#64748B",
-                    border:
-                      paymentMethod === method
-                        ? "1px solid #FF6B1A"
-                        : "1px solid #E2E8F0",
+                    backgroundColor: paymentMethod === method ? "rgba(255,107,26,0.15)" : "#F8FAFC",
+                    color: paymentMethod === method ? "#FF6B1A" : "#64748B",
+                    border: paymentMethod === method ? "1px solid #FF6B1A" : "1px solid #E2E8F0",
                   }}
                 >
                   {method === "Tunai" && "💵"}
                   {method === "QRIS" && "📱"}
                   {method === "DP" && "💰"}
                   {method === "Piutang" && "📝"}
-                  {method}
+                  <span className="hidden xl:inline">{method}</span>
                 </button>
               ))}
             </div>
@@ -686,15 +618,6 @@ export default function CartPanel({
           {/* Paid Amount Input */}
           {(paymentMethod === "Tunai" || paymentMethod === "DP" || paymentMethod === "QRIS") && (
             <div>
-              <label
-                className="block text-xs mb-1.5"
-                style={{
-                  fontFamily: "Space Grotesk, sans-serif",
-                  color: "#8A8A95",
-                }}
-              >
-                {paymentMethod === "Tunai" ? "Nominal Dibayar" : paymentMethod === "QRIS" ? "Konfirmasi Nominal QRIS" : "Bayar DP Sekarang"}
-              </label>
               <div className="relative">
                 <input
                   type="number"
@@ -703,8 +626,8 @@ export default function CartPanel({
                     setPaidAmount(e.target.value);
                     setPaymentError("");
                   }}
-                  placeholder="0"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                  placeholder={paymentMethod === "Tunai" ? "Nominal Dibayar" : paymentMethod === "QRIS" ? "Konfirmasi Nominal" : "Bayar DP"}
+                  className="w-full rounded px-2 py-1 text-xs outline-none transition-all duration-200"
                   style={{
                     backgroundColor: "#F8FAFC",
                     border: `1px solid ${paymentError ? "#E74C3C" : "#E2E8F0"}`,
@@ -714,25 +637,25 @@ export default function CartPanel({
                 />
               </div>
               {paymentError && (
-                <p className="text-xs mt-1 text-[#E74C3C]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <p className="text-[9px] mt-0.5 text-[#E74C3C]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                   {paymentError}
                 </p>
               )}
               
               {/* Summary for Tunai/DP */}
-              <div className="mt-3 space-y-2">
+              <div className="mt-1.5 space-y-1">
                 {paymentMethod === "Tunai" && paid >= total && paid > 0 && (
-                  <div className="flex justify-between items-center bg-[#2ECC71]/10 rounded-lg px-3 py-2">
-                    <span className="text-xs text-[#8A8A95]">Kembalian</span>
-                    <span className="text-sm font-bold text-[#2ECC71]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                  <div className="flex justify-between items-center bg-[#2ECC71]/10 rounded px-2 py-1">
+                    <span className="text-[9px] text-[#8A8A95]">Kembalian</span>
+                    <span className="text-[10px] font-bold text-[#2ECC71]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                       {formatCurrency(change)}
                     </span>
                   </div>
                 )}
                 {paymentMethod === "DP" && paid > 0 && paid < total && (
-                  <div className="flex justify-between items-center bg-yellow-500/10 rounded-lg px-3 py-2">
-                    <span className="text-xs text-[#8A8A95]">Sisa Tagihan</span>
-                    <span className="text-sm font-bold text-yellow-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                  <div className="flex justify-between items-center bg-yellow-500/10 rounded px-2 py-1">
+                    <span className="text-[9px] text-[#8A8A95]">Sisa Tagihan</span>
+                    <span className="text-[10px] font-bold text-yellow-500" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                       {formatCurrency(total - paid)}
                     </span>
                   </div>
@@ -743,33 +666,39 @@ export default function CartPanel({
 
           {/* Credit Method Info */}
           {(paymentMethod === "Piutang" || paymentMethod === "Angsuran") && (
-            <div className="bg-[#FF6B1A]/5 border border-[#FF6B1A]/20 rounded-lg p-3">
-              <p className="text-[10px] text-[#FF6B1A] font-bold mb-0.5 uppercase tracking-wider">Metode Kredit</p>
-              <p className="text-[10px] text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                Transaksi akan dicatat sebagai {paymentMethod.toLowerCase()} pelanggan.
-              </p>
-              <div className="mt-2 flex justify-between items-center border-t border-[#FF6B1A]/10 pt-1.5">
-                <span className="text-[10px] text-[#64748B]">Total Hutang:</span>
-                <span className="text-xs font-bold text-[#1E293B]">{formatCurrency(total)}</span>
+            <div className="bg-[#FF6B1A]/5 border border-[#FF6B1A]/20 rounded p-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-[#64748B]">Total Hutang:</span>
+                <span className="text-[10px] font-bold text-[#1E293B]">{formatCurrency(total)}</span>
               </div>
             </div>
           )}
 
           {/* Checkout Button */}
-          <motion.button
-            onClick={handleCheckout}
-            whileTap={{ scale: 0.97 }}
-            className="w-full rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2 transition-all duration-200"
-            style={{
-              fontFamily: "Syne, sans-serif",
-              backgroundColor: "#FF6B1A",
-              color: "#FFFFFF",
-              letterSpacing: "0.01em",
-            }}
-            whileHover={{ backgroundColor: "#FFB347" }}
-          >
-            🖨️ Cetak & Proses
-          </motion.button>
+          <div className="flex gap-1.5">
+            <motion.button
+              onClick={() => onPreviewInvoice && onPreviewInvoice(paymentMethod, paid)}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 rounded py-2 text-[10px] font-bold flex items-center justify-center gap-1 transition-all duration-200 border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] bg-[#FFFFFF]"
+              style={{ fontFamily: "Syne, sans-serif" }}
+            >
+              👁️ Preview
+            </motion.button>
+            <motion.button
+              onClick={handleCheckout}
+              whileTap={{ scale: 0.97 }}
+              className="flex-[2] rounded py-2 text-[10px] font-bold flex items-center justify-center gap-1 transition-all duration-200"
+              style={{
+                fontFamily: "Syne, sans-serif",
+                backgroundColor: "#FF6B1A",
+                color: "#FFFFFF",
+                letterSpacing: "0.01em",
+              }}
+              whileHover={{ backgroundColor: "#FFB347" }}
+            >
+              🖨️ Cetak & Bayar
+            </motion.button>
+          </div>
         </div>
       )}
 

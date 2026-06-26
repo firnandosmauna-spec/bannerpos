@@ -20,6 +20,22 @@ export default function SettingsView({ users, onAddUser, onUpdateUser, onDeleteU
   const [autoInvoicePrefix, setAutoInvoicePrefix] = useState(() => localStorage.getItem("autoInvoicePrefix") || "ORD-");
   const [autoInvoiceCounter, setAutoInvoiceCounter] = useState(() => localStorage.getItem("currentInvoiceCounter") || "1");
 
+  // State Nota
+  const [storeName, setStoreName] = useState(() => localStorage.getItem("receiptStoreName") || "BANNERPOS PERCETAKAN");
+  const [storeAddress, setStoreAddress] = useState(() => localStorage.getItem("receiptStoreAddress") || "Jl. Raya Percetakan No. 123\nJakarta Pusat");
+  const [storeContact, setStoreContact] = useState(() => localStorage.getItem("receiptStoreContact") || "WA: 0812-3456-7890");
+  const [footerMessage, setFooterMessage] = useState(() => localStorage.getItem("receiptFooterMessage") || "Barang yang sudah dicetak\ntidak dapat dikembalikan.\nTerima Kasih!");
+  const [showKasir, setShowKasir] = useState(() => localStorage.getItem("receiptShowKasir") !== "false");
+
+  const saveReceiptSettings = () => {
+    localStorage.setItem("receiptStoreName", storeName);
+    localStorage.setItem("receiptStoreAddress", storeAddress);
+    localStorage.setItem("receiptStoreContact", storeContact);
+    localStorage.setItem("receiptFooterMessage", footerMessage);
+    localStorage.setItem("receiptShowKasir", showKasir.toString());
+    toast.success("Pengaturan Nota berhasil disimpan");
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#FFFFFF] overflow-hidden">
       <div className="p-6 border-b border-[#E2E8F0] bg-[#FFFFFF]">
@@ -123,67 +139,72 @@ export default function SettingsView({ users, onAddUser, onUpdateUser, onDeleteU
                 className="max-w-2xl space-y-6"
               >
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-[#1E293B]">Pengaturan Nota</h3>
+                  <h3 className="text-lg font-bold text-[#1E293B]">Pengaturan Template Nota (Termal 80mm)</h3>
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Header Nota (Baris 1)</label>
-                      <input type="text" defaultValue="TERIMA KASIH TELAH MEMESAN" className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" />
+                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Nama Toko / Judul Header</label>
+                      <input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Footer / Pesan Bawah</label>
-                      <textarea rows={2} defaultValue="Barang yang sudah dibeli tidak dapat ditukar. Harap cek pesanan sebelum pulang." className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none resize-none transition-all" />
-                      <div className="flex items-center gap-4 p-4 bg-[#FF6B1A]/5 rounded-2xl border border-[#FF6B1A]/20">
-                        <Receipt className="text-[#FF6B1A]" size={24} />
+                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Alamat Toko</label>
+                      <textarea rows={2} value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none resize-none transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Kontak (Telp/WA)</label>
+                      <input type="text" value={storeContact} onChange={(e) => setStoreContact(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Catatan Kaki (Footer / S&K)</label>
+                      <textarea rows={3} value={footerMessage} onChange={(e) => setFooterMessage(e.target.value)} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none resize-none transition-all" />
+                    </div>
+                    <label className="flex items-center gap-3 p-3 border border-[#E2E8F0] rounded-xl cursor-pointer hover:bg-[#F8FAFC]">
+                      <input type="checkbox" checked={showKasir} onChange={(e) => setShowKasir(e.target.checked)} className="rounded text-[#FF6B1A] focus:ring-[#FF6B1A] w-4 h-4" />
+                      <span className="text-sm font-medium text-[#1E293B]">Tampilkan Nama Kasir di Nota</span>
+                    </label>
+
+                    <div className="space-y-1.5 pt-4 border-t border-[#E2E8F0]">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-bold text-[#1E293B]">Ukuran Kertas</p>
-                          <p className="text-xs text-[#64748B]">Thermal 58mm / 80mm didukung otomatis</p>
+                          <label className="text-sm font-bold text-[#1E293B]">Nomor Invoice Manual</label>
+                          <p className="text-[10px] text-[#64748B]">Izinkan kasir memasukkan nomor invoice secara manual.</p>
                         </div>
+                        <button 
+                          onClick={() => setEnableManualInvoice(!enableManualInvoice)}
+                          className={`w-10 h-5 rounded-full relative transition-all ${enableManualInvoice ? 'bg-[#2ECC71]' : 'bg-[#CBD5E1]'}`}
+                        >
+                          <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${enableManualInvoice ? 'right-1' : 'left-1'}`} />
+                        </button>
                       </div>
-                      
-                      <div className="space-y-1.5 pt-4 border-t border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-bold text-[#1E293B]">Nomor Invoice Manual</label>
-                            <p className="text-[10px] text-[#64748B]">Izinkan kasir memasukkan nomor invoice secara manual.</p>
-                          </div>
-                          <button 
-                            onClick={() => setEnableManualInvoice(!enableManualInvoice)}
-                            className={`w-10 h-5 rounded-full relative transition-all ${enableManualInvoice ? 'bg-[#2ECC71]' : 'bg-[#CBD5E1]'}`}
-                          >
-                            <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${enableManualInvoice ? 'right-1' : 'left-1'}`} />
-                          </button>
-                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#E2E8F0]">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Prefix Invoice Otomatis</label>
+                        <input 
+                          type="text" 
+                          value={autoInvoicePrefix}
+                          onChange={(e) => setAutoInvoicePrefix(e.target.value)}
+                          className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" 
+                          placeholder="Contoh: ORD-"
+                        />
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#E2E8F0]">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Prefix Invoice Otomatis</label>
-                          <input 
-                            type="text" 
-                            value={autoInvoicePrefix}
-                            onChange={(e) => setAutoInvoicePrefix(e.target.value)}
-                            className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" 
-                            placeholder="Contoh: ORD-"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Mulai dari Nomor</label>
-                          <input 
-                            type="number" 
-                            value={autoInvoiceCounter}
-                            onChange={(e) => setAutoInvoiceCounter(e.target.value)}
-                            className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" 
-                          />
-                        </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Mulai dari Nomor</label>
+                        <input 
+                          type="number" 
+                          value={autoInvoiceCounter}
+                          onChange={(e) => setAutoInvoiceCounter(e.target.value)}
+                          className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] focus:border-[#FF6B1A] outline-none transition-all" 
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
                 <button onClick={() => {
+                  saveReceiptSettings();
                   localStorage.setItem("enableManualInvoice", enableManualInvoice.toString());
                   localStorage.setItem("autoInvoicePrefix", autoInvoicePrefix);
                   localStorage.setItem("currentInvoiceCounter", autoInvoiceCounter);
-                  toast.success("Format nota disimpan");
                 }} className="flex items-center gap-2 px-6 py-2.5 bg-[#FF6B1A] text-[#FFFFFF] rounded-xl font-bold text-sm hover:bg-[#FFB347] transition-all shadow-md shadow-orange-500/20">
                   <Save size={18} /> Simpan Konfigurasi
                 </button>

@@ -40,10 +40,14 @@ export default function Home() {
     if (error) {
       console.error("Gagal mengambil profil:", error);
     }
+    // Jika profile tidak ditemukan (biasanya terjadi pada akun Admin Utama yang dibuat langsung dari Supabase Studio),
+    // kita set otomatis sebagai 'admin'. Semua kasir yang dibuat via aplikasi PASTI memiliki profile.
+    let role = data?.role?.toLowerCase();
+    if (!role) {
+      role = (data === null || user.email?.includes('admin')) ? 'admin' : 'kasir';
+    }
     
-    const role = data?.role?.toLowerCase() || (user.email === 'admin@example.com' ? 'admin' : 'kasir');
-    
-    setKasirName(data?.name || user.email?.split('@')[0] || "User");
+    setKasirName(data?.name || user.email?.split('@')[0] || "Administrator");
     setKasirRole(role);
     
     // Jika permissions kosong atau belum ada, berikan akses dasar kasir agar menu tidak hilang semua

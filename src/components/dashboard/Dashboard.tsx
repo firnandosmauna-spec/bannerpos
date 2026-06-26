@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import TopNav from "./TopNav";
 import Sidebar from "./Sidebar";
 import ProductCatalog from "./ProductCatalog";
+import InvoicePrint from "./InvoicePrint";
 import CartPanel from "./CartPanel";
 import OrderHistoryTable from "./OrderHistoryTable";
 import { CartItem, OrderHistory, Product, MATERIALS, FINISHINGS, Material, Employee, Customer, Supplier, User } from "@/types/pos";
@@ -39,6 +40,7 @@ let orderCounter = 1;
 export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermissions = [], onLogout }: DashboardProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
+  const [printData, setPrintData] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [posStep, setPosStep] = useState<"intake" | "transaction">("intake");
@@ -191,25 +193,54 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
       if (error) throw error;
       toast.success("Transaksi Berhasil!");
       fetchOrders();
+      
+      // Siapkan data cetak
+      setPrintData({
+        orderNo,
+        kasirName,
+        items: cartItems.map(i => ({
+          name: `${i.productName} (${i.width}x${i.height})`,
+          qty: i.quantity,
+          price: i.pricePerM2,
+          total: i.totalPrice,
+          note: i.hasDesignRequest ? 'Termasuk Jasa Desain' : ''
+        })),
+        total,
+        paidAmount,
+        paymentMethod,
+        date: new Date()
+      });
+
       setCartItems([]);
       setSuccessMessage(`Transaksi ${orderNo} berhasil! Total: Rp ${new Intl.NumberFormat("id-ID").format(total)}`);
-      setTimeout(() => setSuccessMessage(""), 4000);
+      
+      // Auto-print delay to allow render
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => setSuccessMessage(""), 4000);
+      }, 500);
+
     } catch (error: any) {
       console.error("Checkout error:", error);
       toast.error("Gagal menyimpan transaksi: " + error.message);
     }
   };
 
+  const todayOrdersCount = orderHistory.length;
+  const todaySales = orderHistory.reduce((sum, order) => sum + order.total, 0);
+  const formatCurrency = (val: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(val);
+
   const stats = [
-    { label: "Total Omzet", value: "Rp 12.5M", icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
-    { label: "Pesanan Hari Ini", value: "24 Order", icon: TrendingUp, color: "text-[#FF6B1A]", bg: "bg-[#FF6B1A]/10" },
+    { label: "Omzet Hari Ini", value: formatCurrency(todaySales), icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
+    { label: "Pesanan Hari Ini", value: `${todayOrdersCount} Order`, icon: TrendingUp, color: "text-[#FF6B1A]", bg: "bg-[#FF6B1A]/10" },
     { label: "Total Produk", value: products.length.toString(), icon: Package, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Pelanggan Aktif", value: customers.length.toString(), icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={onLogout} role={kasirRole} permissions={kasirPermissions} />
+    <>
+      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] print:hidden">
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={onLogout} role={kasirRole} permissions={kasirPermissions} />
 
       <div className="flex flex-col flex-1 min-w-0">
         <TopNav 
@@ -241,8 +272,8 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
             {currentView === "dashboard" && (
               <MainDashboardView 
                 stats={{
-                  totalSales: "Rp 12.5M",
-                  todayOrders: "24 Order",
+                  totalSales: formatCurrency(todaySales),
+                  todayOrders: `${todayOrdersCount} Order`,
                   totalProducts: products.length.toString(),
                   activeCustomers: customers.length.toString(),
                 }}
@@ -261,7 +292,6 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                   />
                 ) : (
                   <>
-                    {/* Stats Overview */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                       {stats.map((stat, idx) => (
                         <motion.div
@@ -283,7 +313,6 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                     </div>
 
                     <div className="flex flex-col lg:flex-row flex-1 gap-4 overflow-hidden min-h-[500px]">
-                      {/* Catalog Area */}
                       <div className="flex flex-col flex-1 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
                         <div className="flex-1 overflow-hidden">
                           <div className="flex justify-between items-center px-4 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
@@ -304,7 +333,6 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                         </div>
                       </div>
 
-                      {/* Cart Area */}
                       <div className="w-full lg:w-[320px] flex flex-col bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
                         <CartPanel
                           items={cartItems}
@@ -312,7 +340,27 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                           onRemoveItem={handleRemoveItem}
                           onCheckout={(method, paid, manualInvoice) => {
                             handleCheckout(method, paid, manualInvoice);
-                            setPosStep("intake"); // Reset after checkout
+                            setPosStep("intake");
+                          }}
+                          onPreviewInvoice={(method, paid) => {
+                            if (cartItems.length === 0) return;
+                            const total = cartItems.reduce((sum, i) => sum + i.totalPrice, 0);
+                            setPrintData({
+                              orderNo: "DRAFT-PREVIEW",
+                              kasirName,
+                              items: cartItems.map(i => ({
+                                name: `${i.productName} (${i.width}x${i.height})`,
+                                qty: i.quantity,
+                                price: i.pricePerM2,
+                                total: i.totalPrice,
+                                note: i.hasDesignRequest ? 'Termasuk Jasa Desain' : ''
+                              })),
+                              total,
+                              paidAmount: paid,
+                              paymentMethod: method,
+                              date: new Date()
+                            });
+                            setTimeout(() => window.print(), 200);
                           }}
                         />
                       </div>
@@ -397,7 +445,12 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                   />
                 )}
                 {currentView === "production-tracking" && <ProductionTrackingView />}
-                {currentView === "report-transactions" && <TransactionHistoryView />}
+                {currentView === "report-transactions" && (
+                  <TransactionHistoryView onPrint={(data) => {
+                    setPrintData(data);
+                    setTimeout(() => window.print(), 200);
+                  }} />
+                )}
                 {currentView === "report-sales" && <ReportView title="Laporan Penjualan" type="sales" />}
                 {currentView === "report-purchases" && <ReportView title="Laporan Pembelian" type="purchases" />}
                 {currentView === "report-damaged" && <ReportView title="Laporan Barang Rusak" type="damaged" />}
@@ -416,5 +469,9 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
         </div>
       </div>
     </div>
+    {printData && (
+        <InvoicePrint {...printData} />
+    )}
+    </>
   );
 }
