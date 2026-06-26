@@ -3,9 +3,10 @@ import { OrderHistory } from "@/types/pos";
 
 interface OrderHistoryTableProps {
   orders: OrderHistory[];
+  onViewAll?: () => void;
 }
 
-export default function OrderHistoryTable({ orders }: OrderHistoryTableProps) {
+export default function OrderHistoryTable({ orders, onViewAll }: OrderHistoryTableProps) {
   const formatCurrency = (price: number) =>
     "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(price));
 
@@ -38,15 +39,25 @@ export default function OrderHistoryTable({ orders }: OrderHistoryTableProps) {
         >
           Riwayat Order Hari Ini
         </h3>
-        <span
-          className="text-xs"
-          style={{
-            fontFamily: "Space Grotesk, sans-serif",
-            color: "#64748B",
-          }}
-        >
-          {orders.length} transaksi
-        </span>
+        <div className="flex items-center gap-4">
+          <span
+            className="text-xs"
+            style={{
+              fontFamily: "Space Grotesk, sans-serif",
+              color: "#64748B",
+            }}
+          >
+            {orders.length} transaksi
+          </span>
+          {onViewAll && (
+            <button 
+              onClick={onViewAll}
+              className="text-[10px] font-bold text-[#FF6B1A] hover:underline"
+            >
+              Lihat Semua →
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}
@@ -93,8 +104,6 @@ export default function OrderHistoryTable({ orders }: OrderHistoryTableProps) {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
-                      style={{ borderBottom: "1px solid #E2E8F0" }}
-                      className="transition-colors duration-150"
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.backgroundColor =
                           "#F8FAFC")
@@ -102,6 +111,8 @@ export default function OrderHistoryTable({ orders }: OrderHistoryTableProps) {
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = "transparent")
                       }
+                      onClick={onViewAll}
+                      style={{ borderBottom: "1px solid #E2E8F0", cursor: onViewAll ? "pointer" : "default" }}
                     >
                       <td className="px-4 py-2.5">
                         <span

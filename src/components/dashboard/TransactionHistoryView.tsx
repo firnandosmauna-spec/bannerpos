@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Calendar, Filter, Printer, Download, 
-  ChevronLeft, ChevronRight, Eye, RefreshCw, ShoppingBag
+  ChevronLeft, ChevronRight, Eye, RefreshCw, ShoppingBag, CreditCard
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -15,6 +15,9 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [paymentModal, setPaymentModal] = useState<any>(null);
+  const [payAmount, setPayAmount] = useState<string>("");
+  const [payMethod, setPayMethod] = useState<string>("Tunai");
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -43,6 +46,35 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
       toast.error("Gagal memuat riwayat transaksi");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePayOff = async () => {
+    if (!paymentModal || !payAmount) return;
+    const amount = parseFloat(payAmount);
+    if (isNaN(amount) || amount <= 0) return toast.error("Nominal tidak valid");
+
+    const newPaid = paymentModal.paid_amount + amount;
+    const newRemaining = Math.max(0, paymentModal.total_amount - newPaid);
+    const newStatus = newRemaining <= 0 ? "selesai" : paymentModal.status;
+
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ 
+          paid_amount: newPaid, 
+          remaining_amount: newRemaining,
+          status: newStatus
+        })
+        .eq("id", paymentModal.id);
+
+      if (error) throw error;
+      toast.success("Pelunasan berhasil disimpan");
+      setPaymentModal(null);
+      fetchAllOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menyimpan pelunasan");
     }
   };
 
@@ -156,8 +188,22 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => {
+                    <div className="flex items-center justify-end gap-1">
+                      {order.remaining_amount > 0 && (
+                        <button 
+                          onClick={() => {
+                            setPaymentModal(order);
+                            setPayAmount(order.remaining_amount.toString());
+                            setPayMethod("Tunai");
+                          }}
+                          className="p-2 bg-[#FF6B1A]/10 text-[#FF6B1A] hover:bg-[#FF6B1A] hover:text-white rounded-lg transition-all shadow-sm"
+                          title="Bayar Sisa / Pelunasan"
+                        >
+                          <CreditCard size={14} />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => {
                         if (onPrint) {
                           onPrint({
                             orderNo: order.order_no,
@@ -175,6 +221,7 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                     >
                       <Printer size={14} />
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -188,6 +235,80 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <AnimatePresence>
+        {paymentModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 w-[360px] shadow-2xl"
+            >
+              <h3 className="text-lg font-bold text-[#1E293B] mb-2" style={{ fontFamily: "Syne, sans-serif" }}>Pelunasan Tagihan</h3>
+              <p className="text-xs text-[#64748B] mb-4">No. Order: <span className="font-bold text-[#FF6B1A]">{paymentModal.order_no}</span></p>
+
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
+                <p className="text-[10px] text-yellow-600 font-bold uppercase mb-1">Sisa Tagihan Saat Ini</p>
+                <p className="text-xl font-bold text-yellow-600" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                  {formatCurrency(paymentModal.remaining_amount)}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-[#64748B] mb-1.5 font-bold">Metode Pembayaran</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["Tunai", "QRIS"].map((method) => (
+                      <button
+                        key={method}
+                        onClick={() => setPayMethod(method)}
+                        className={`py-2 text-xs font-bold rounded-lg border transition-all ${
+                          payMethod === method ? "bg-[#FF6B1A]/10 border-[#FF6B1A] text-[#FF6B1A]" : "bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B]"
+                        }`}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-[#64748B] mb-1.5 font-bold">Nominal Pembayaran</label>
+                  <input 
+                    type="number"
+                    value={payAmount}
+                    onChange={(e) => setPayAmount(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2 text-sm outline-none focus:border-[#FF6B1A] transition-colors"
+                    style={{ fontFamily: "JetBrains Mono, monospace" }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-6">
+                <button
+                  onClick={() => setPaymentModal(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#F8FAFC] text-[#1E293B] hover:bg-[#E2E8F0] transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handlePayOff}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FF6B1A] text-white hover:bg-[#FFB347] transition-colors shadow-lg shadow-orange-500/20"
+                >
+                  Proses Pelunasan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

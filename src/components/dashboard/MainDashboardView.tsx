@@ -14,9 +14,10 @@ interface MainDashboardViewProps {
   };
   recentOrders: any[];
   lowStockItems: any[];
+  onViewTransactions?: () => void;
 }
 
-export default function MainDashboardView({ stats, recentOrders, lowStockItems }: MainDashboardViewProps) {
+export default function MainDashboardView({ stats, recentOrders, lowStockItems, onViewTransactions }: MainDashboardViewProps) {
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(val);
 
@@ -69,7 +70,9 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
             <h3 className="font-bold text-sm text-[#1E293B] flex items-center gap-2">
               <Clock size={18} className="text-[#FF6B1A]" /> Transaksi Terakhir
             </h3>
-            <button className="text-[10px] font-bold text-[#FF6B1A] hover:underline uppercase tracking-wider">Lihat Semua</button>
+            {onViewTransactions && (
+              <button onClick={onViewTransactions} className="text-[10px] font-bold text-[#FF6B1A] hover:underline uppercase tracking-wider">Lihat Semua</button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -83,7 +86,12 @@ export default function MainDashboardView({ stats, recentOrders, lowStockItems }
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
                 {recentOrders.slice(0, 5).map((order) => (
-                  <tr key={order.id} className="hover:bg-[#F8FAFC] transition-colors">
+                  <tr 
+                    key={order.id} 
+                    className="hover:bg-[#F8FAFC] transition-colors"
+                    onClick={onViewTransactions}
+                    style={{ cursor: onViewTransactions ? "pointer" : "default" }}
+                  >
                     <td className="px-4 py-3 text-xs font-bold text-[#1E293B]">{order.orderNo}</td>
                     <td className="px-4 py-3 text-[11px] text-[#64748B] truncate max-w-[200px]">{order.items}</td>
                     <td className="px-4 py-3 text-xs font-bold text-[#1E293B]">{formatCurrency(order.total)}</td>

@@ -279,6 +279,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                 }}
                 recentOrders={orderHistory}
                 lowStockItems={materials.filter(m => m.stock <= m.minStock)}
+                onViewTransactions={() => setCurrentView("report-transactions")}
               />
             )}
             {currentView === "pos" ? (
@@ -329,7 +330,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                           <ProductCatalog products={products} onAddProduct={handleAddProduct} />
                         </div>
                         <div className="hidden lg:block border-t border-[#E2E8F0] bg-[#F8FAFC] h-[140px]">
-                          <OrderHistoryTable orders={orderHistory} />
+                          <OrderHistoryTable orders={orderHistory} onViewAll={() => setCurrentView("report-transactions")} />
                         </div>
                       </div>
 
