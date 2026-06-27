@@ -246,7 +246,6 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
     <>
       <div className="flex h-screen overflow-hidden bg-[#F8FAFC] print:hidden">
         <Sidebar 
-          kasirName={kasirName} 
           onLogout={onLogout} 
           currentView={currentView} 
           onViewChange={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }}
