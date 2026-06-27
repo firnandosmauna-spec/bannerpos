@@ -50,7 +50,12 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
     { id: "report-sales", label: "Laporan Penjualan", icon: "📈" },
     { id: "report-purchases", label: "Laporan Pembelian", icon: "📄" },
     { id: "report-damaged", label: "Barang Rusak", icon: "⚠️" },
-    { id: "report-profit", label: "Laba & Rugi", icon: "💰" },
+    { id: "report-profit", label: "Laba & Rugi Lama", icon: "💰" },
+    { id: "divider-acc", type: "divider", label: "Akuntansi (Baru)" },
+    { id: "accounting-coa", label: "Kode Akun (COA)", icon: "🏷️" },
+    { id: "accounting-journal", label: "Jurnal Umum", icon: "📓" },
+    { id: "accounting-ledger", label: "Buku Besar", icon: "📘" },
+    { id: "accounting-statements", label: "Laporan Keuangan", icon: "📊" },
     { id: "divider3", type: "divider", label: "Konfigurasi" },
     { id: "settings", label: "Pengaturan Sistem", icon: "⚙️" },
   ];

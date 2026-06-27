@@ -25,6 +25,10 @@ import MasterMesin from "./MasterMesin";
 import TransactionHistoryView from "./TransactionHistoryView";
 import ProductionTrackingView from "./ProductionTrackingView";
 import MainDashboardView from "./MainDashboardView";
+import AccountingCOA from "./AccountingCOA";
+import AccountingJournal from "./AccountingJournal";
+import AccountingLedger from "./AccountingLedger";
+import AccountingStatements from "./AccountingStatements";
 import { useMasterData } from "@/hooks/useMasterData";
 import { TrendingUp, Users, Package, DollarSign } from "lucide-react";
 
@@ -470,6 +474,10 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                 {currentView === "report-purchases" && <ReportView title="Laporan Pembelian" type="purchases" />}
                 {currentView === "report-damaged" && <ReportView title="Laporan Barang Rusak" type="damaged" />}
                 {currentView === "report-profit" && <ReportView title="Laporan Laba & Rugi" type="profit" />}
+                {currentView === "accounting-coa" && <AccountingCOA />}
+                {currentView === "accounting-journal" && <AccountingJournal />}
+                {currentView === "accounting-ledger" && <AccountingLedger />}
+                {currentView === "accounting-statements" && <AccountingStatements />}
                 {currentView === "settings" && (
                   <SettingsView
                     users={users}
