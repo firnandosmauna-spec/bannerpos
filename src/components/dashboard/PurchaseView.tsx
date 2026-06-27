@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Plus, Calendar, Truck, Box, DollarSign, 
   Trash2, Filter, ArrowUpRight, ArrowDownRight, RefreshCw, 
-  FileText, CheckCircle2, XCircle, Save
+  FileText, CheckCircle2, XCircle, Save, Edit
 } from "lucide-react";
 import { Purchase, Material, Supplier } from "@/types/pos";
 import { supabase } from "@/lib/supabase";
@@ -20,6 +20,8 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Purchase | null>(null);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -74,73 +76,141 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
     fetchPurchases();
   }, []);
 
-  const handleSavePurchase = async () => {
+  const openEditModal = (purchase: Purchase) => {
+    setEditingPurchase(purchase);
+    setFormData({
+      materialId: purchase.materialId || "",
+      supplierId: purchase.supplierId || "",
+      quantity: purchase.quantity || 0,
+      unitPrice: purchase.unitPrice || 0,
+      paymentStatus: purchase.paymentStatus as "lunas" | "hutang",
+      note: purchase.note || ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingPurchase(null);
+    setFormData({
+      materialId: "",
+      supplierId: "",
+      quantity: 0,
+      unitPrice: 0,
+      paymentStatus: "lunas",
+      note: ""
+    });
+  };
+
+  const handleSubmitPurchase = async () => {
     if (!formData.materialId || !formData.supplierId || formData.quantity <= 0) {
       toast.error("Harap isi semua data dengan benar");
       return;
     }
 
     const totalPrice = formData.quantity * formData.unitPrice;
-    const purchaseNo = `PRC-${Date.now().toString().slice(-6)}`;
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("purchases")
-        .insert([{
-          purchase_no: purchaseNo,
-          ingredient_id: formData.materialId,
-          supplier_id: formData.supplierId,
-          quantity: formData.quantity,
-          unit_price: formData.unitPrice,
-          total_price: totalPrice,
-          payment_status: formData.paymentStatus,
-          note: formData.note,
-          purchase_date: new Date().toISOString()
-        }])
-        .select();
 
-      if (error) throw error;
+      if (editingPurchase) {
+        // Rollback stok lama
+        const oldMaterial = materials.find(m => m.id === editingPurchase.materialId);
+        const newMaterial = materials.find(m => m.id === formData.materialId);
 
-      // Update Stock in ingredients table
-      const material = materials.find(m => m.id === formData.materialId);
-      if (material) {
-        const newStock = material.stock + formData.quantity;
-        const { error: stockError } = await supabase
-          .from("ingredients")
-          .update({ stock: newStock })
-          .eq("id", formData.materialId);
-        
-        if (stockError) throw stockError;
-        
-        // Log the movement
-        await supabase.from("inventory_logs").insert([{
-          ingredient_id: formData.materialId,
-          type: "in",
-          quantity: formData.quantity,
-          previous_stock: material.stock,
-          current_stock: newStock,
-          note: `Pembelian: ${purchaseNo}`
-        }]);
+        if (oldMaterial && newMaterial) {
+           if (oldMaterial.id === newMaterial.id) {
+              const diff = formData.quantity - editingPurchase.quantity;
+              const newStock = oldMaterial.stock + diff;
+              await supabase.from("ingredients").update({ stock: newStock }).eq("id", oldMaterial.id);
+           } else {
+              const rbStock = oldMaterial.stock - editingPurchase.quantity;
+              await supabase.from("ingredients").update({ stock: rbStock }).eq("id", oldMaterial.id);
+              const addStock = newMaterial.stock + formData.quantity;
+              await supabase.from("ingredients").update({ stock: addStock }).eq("id", newMaterial.id);
+           }
+        }
+
+        const { error } = await supabase
+          .from("purchases")
+          .update({
+            ingredient_id: formData.materialId,
+            supplier_id: formData.supplierId,
+            quantity: formData.quantity,
+            unit_price: formData.unitPrice,
+            total_price: totalPrice,
+            payment_status: formData.paymentStatus,
+            note: formData.note
+          })
+          .eq("id", editingPurchase.id);
+
+        if (error) throw error;
+        toast.success("Pembelian berhasil diperbarui!");
+      } else {
+        const purchaseNo = `PRC-${Date.now().toString().slice(-6)}`;
+        const { error } = await supabase
+          .from("purchases")
+          .insert([{
+            purchase_no: purchaseNo,
+            ingredient_id: formData.materialId,
+            supplier_id: formData.supplierId,
+            quantity: formData.quantity,
+            unit_price: formData.unitPrice,
+            total_price: totalPrice,
+            payment_status: formData.paymentStatus,
+            note: formData.note,
+            purchase_date: new Date().toISOString()
+          }]);
+
+        if (error) throw error;
+
+        const material = materials.find(m => m.id === formData.materialId);
+        if (material) {
+          const newStock = material.stock + formData.quantity;
+          await supabase.from("ingredients").update({ stock: newStock }).eq("id", formData.materialId);
+          await supabase.from("inventory_logs").insert([{
+            ingredient_id: formData.materialId,
+            type: "in",
+            quantity: formData.quantity,
+            previous_stock: material.stock,
+            current_stock: newStock,
+            note: `Pembelian: ${purchaseNo}`
+          }]);
+        }
+        toast.success("Pembelian berhasil dicatat!");
       }
 
-      toast.success("Pembelian berhasil dicatat!");
-      setIsModalOpen(false);
+      handleCloseModal();
       fetchPurchases();
       onRefreshMaterials();
-      
-      // Reset form
-      setFormData({
-        materialId: "",
-        supplierId: "",
-        quantity: 0,
-        unitPrice: 0,
-        paymentStatus: "lunas",
-        note: ""
-      });
     } catch (error) {
       console.error("Error saving purchase:", error);
-      toast.error("Gagal mencatat pembelian");
+      toast.error("Gagal menyimpan pembelian");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePurchase = async () => {
+    if (!deleteConfirm) return;
+    try {
+      setLoading(true);
+      const material = materials.find(m => m.id === deleteConfirm.materialId);
+      if (material) {
+        const newStock = material.stock - deleteConfirm.quantity;
+        await supabase.from("ingredients").update({ stock: newStock }).eq("id", material.id);
+      }
+      
+      const { error } = await supabase.from("purchases").delete().eq("id", deleteConfirm.id);
+      if (error) throw error;
+
+      toast.success("Pembelian berhasil dihapus!");
+      setDeleteConfirm(null);
+      fetchPurchases();
+      onRefreshMaterials();
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menghapus pembelian");
     } finally {
       setLoading(false);
     }
@@ -163,7 +233,10 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
           <p className="text-[11px] lg:text-xs text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Catat pengadaan bahan baku dari supplier</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            handleCloseModal(); // Reset form & state
+            setIsModalOpen(true);
+          }}
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#FF6B1A] text-[#FFFFFF] hover:bg-[#FFB347] transition-all shadow-lg shadow-orange-500/20"
         >
           <span className="text-lg">🛒</span> Tambah Pembelian
@@ -191,6 +264,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Harga Satuan</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Total</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Status</th>
+              <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest text-right">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E2E8F0]">
@@ -229,6 +303,24 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                     {item.paymentStatus}
                   </span>
                 </td>
+                <td className="px-4 py-2 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="p-1.5 text-[#64748B] hover:text-[#0EA5E9] hover:bg-[#F8FAFC] rounded transition-colors"
+                      title="Edit Pembelian"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(item)}
+                      className="p-1.5 text-[#64748B] hover:text-red-500 hover:bg-[#F8FAFC] rounded transition-colors"
+                      title="Hapus Pembelian"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -254,7 +346,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
@@ -264,7 +356,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
               className="relative w-full max-w-md bg-[#FFFFFF] rounded-2xl shadow-2xl overflow-hidden"
             >
               <div className="p-4 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                <h3 className="text-base font-bold text-[#1E293B]">Form Pembelian Baru</h3>
+                <h3 className="text-base font-bold text-[#1E293B]">{editingPurchase ? "Edit Pembelian" : "Form Pembelian Baru"}</h3>
               </div>
               <div className="p-4 space-y-3">
                 <div className="space-y-1">
@@ -348,13 +440,13 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                   </div>
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => setIsModalOpen(false)}
+                      onClick={handleCloseModal}
                       className="px-4 py-2 text-xs font-bold text-[#64748B] hover:bg-gray-50 rounded-xl"
                     >
                       Batal
                     </button>
                     <button 
-                      onClick={handleSavePurchase}
+                      onClick={handleSubmitPurchase}
                       disabled={loading}
                       className="px-6 py-2 bg-[#FF6B1A] text-white text-xs font-bold rounded-xl hover:bg-[#FFB347] transition-all flex items-center gap-2"
                     >
@@ -363,6 +455,49 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                     </button>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirm(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#FFFFFF] rounded-2xl shadow-2xl p-6"
+            >
+              <h3 className="text-lg font-bold text-red-600 mb-2">Hapus Pembelian?</h3>
+              <p className="text-sm text-[#64748B] mb-6">
+                Data pembelian <span className="font-bold text-[#1E293B]">{deleteConfirm.purchaseNo}</span> akan dihapus. Stok bahan {deleteConfirm.materialName} juga akan dikurangi sebanyak {deleteConfirm.quantity}.
+                <br /><br />Tindakan ini tidak dapat dibatalkan.
+              </p>
+              
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 py-2.5 bg-[#F8FAFC] hover:bg-[#E2E8F0] text-[#1E293B] text-xs font-bold rounded-xl transition-colors border border-[#E2E8F0]"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleDeletePurchase}
+                  disabled={loading}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                >
+                  {loading ? <RefreshCw size={14} className="animate-spin" /> : "Hapus Permanen"}
+                </button>
               </div>
             </motion.div>
           </div>
