@@ -258,17 +258,21 @@ export default function MasterMesin({ machines, onAdd, onUpdate, onDelete, fetch
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Tipe Mesin</label>
-                    <select 
+                    <input 
+                      type="text"
+                      list="machine-type-suggestions"
                       value={formData.type}
                       onChange={(e) => setFormData({...formData, type: e.target.value})}
                       className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2 text-sm outline-none focus:border-[#FF6B1A]"
-                    >
-                      <option value="Outdoor">Outdoor</option>
-                      <option value="Indoor">Indoor</option>
-                      <option value="UV">UV Printer</option>
-                      <option value="Cutting">Cutting Plotter</option>
-                      <option value="Laser">Laser Cutting</option>
-                    </select>
+                      placeholder="Pilih atau ketik tipe"
+                    />
+                    <datalist id="machine-type-suggestions">
+                      <option value="Outdoor" />
+                      <option value="Indoor" />
+                      <option value="UV Printer" />
+                      <option value="Cutting Plotter" />
+                      <option value="Laser Cutting" />
+                    </datalist>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Status</label>
