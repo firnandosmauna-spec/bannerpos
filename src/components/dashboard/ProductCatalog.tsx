@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Search, PlusCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, PlusCircle, X } from "lucide-react";
 import { Product } from "@/types/pos";
 
 interface ProductCatalogProps {
   products: Product[];
-  onAddProduct: (product: Product) => void;
+  onAddProduct: (product: Product, width?: number, height?: number, customPricePerM2?: number) => void;
 }
 
 export default function ProductCatalog({ products, onAddProduct }: ProductCatalogProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("Semua");
+  const [selectedProductForSize, setSelectedProductForSize] = useState<Product | null>(null);
+  const [customWidth, setCustomWidth] = useState<number | string>(100);
+  const [customHeight, setCustomHeight] = useState<number | string>(100);
+  const [customPrice, setCustomPrice] = useState<number | string>(0);
 
   const categories = ["Semua", ...new Set(products.map((p) => p.category))];
 
@@ -30,9 +34,30 @@ export default function ProductCatalog({ products, onAddProduct }: ProductCatalo
       minimumFractionDigits: 0,
     }).format(price);
 
+  const handleProductClick = (product: Product) => {
+    if (product.unit === "m²") {
+      setSelectedProductForSize(product);
+      setCustomWidth(100);
+      setCustomHeight(100);
+      setCustomPrice(product.pricePerM2);
+    } else {
+      onAddProduct(product, 100, 100, product.pricePerM2);
+    }
+  };
+
+  const confirmAddProduct = () => {
+    if (selectedProductForSize) {
+      const w = typeof customWidth === "string" ? parseFloat(customWidth) || 100 : customWidth;
+      const h = typeof customHeight === "string" ? parseFloat(customHeight) || 100 : customHeight;
+      const p = typeof customPrice === "string" ? parseFloat(customPrice) || selectedProductForSize.pricePerM2 : customPrice;
+      onAddProduct(selectedProductForSize, w, h, p);
+      setSelectedProductForSize(null);
+    }
+  };
+
   return (
     <div
-      className="flex flex-col h-full"
+      className="flex flex-col h-full relative"
       style={{ backgroundColor: "#FFFFFF" }}
     >
       {/* Header */}
@@ -108,7 +133,7 @@ export default function ProductCatalog({ products, onAddProduct }: ProductCatalo
               key={product.id}
               product={product}
               index={i}
-              onAdd={onAddProduct}
+              onAdd={handleProductClick}
               formatPrice={formatPrice}
             />
           ))}
@@ -129,6 +154,117 @@ export default function ProductCatalog({ products, onAddProduct }: ProductCatalo
           </div>
         )}
       </div>
+
+      {/* Size Selection Modal */}
+      <AnimatePresence>
+        {selectedProductForSize && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-[#FFFFFF] rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+              style={{ border: "1px solid #E2E8F0" }}
+            >
+              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
+                <h3 className="font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
+                  Tentukan Ukuran & Harga
+                </h3>
+                <button
+                  onClick={() => setSelectedProductForSize(null)}
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-gray-200 text-[#64748B] transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-[#F8FAFC] flex items-center justify-center border border-[#E2E8F0] text-xl">
+                    {selectedProductForSize.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
+                      {selectedProductForSize.name}
+                    </h4>
+                    <p className="text-[10px] text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                      Base: Rp {formatPrice(selectedProductForSize.pricePerM2)} / {selectedProductForSize.unit}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                      Lebar (cm)
+                    </label>
+                    <input
+                      type="number"
+                      value={customWidth}
+                      onChange={(e) => setCustomWidth(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                      style={{ fontFamily: "JetBrains Mono, monospace" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                      Tinggi (cm)
+                    </label>
+                    <input
+                      type="number"
+                      value={customHeight}
+                      onChange={(e) => setCustomHeight(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                      style={{ fontFamily: "JetBrains Mono, monospace" }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    Harga per {selectedProductForSize.unit} (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    value={customPrice}
+                    onChange={(e) => setCustomPrice(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                    style={{ fontFamily: "JetBrains Mono, monospace" }}
+                  />
+                </div>
+                
+                <div className="bg-[#FF6B1A]/5 rounded-xl p-3 flex justify-between items-center border border-[#FF6B1A]/20">
+                  <span className="text-[10px] font-bold text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Estimasi Total Harga</span>
+                  <span className="text-sm font-black text-[#FF6B1A]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                    Rp {formatPrice(
+                      ((typeof customWidth === "string" ? parseFloat(customWidth) || 0 : customWidth) / 100) *
+                      ((typeof customHeight === "string" ? parseFloat(customHeight) || 0 : customHeight) / 100) *
+                      (typeof customPrice === "string" ? parseFloat(customPrice) || 0 : customPrice)
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-2">
+                <button
+                  onClick={() => setSelectedProductForSize(null)}
+                  className="flex-1 py-2 rounded-lg text-xs font-bold text-[#64748B] bg-white border border-[#E2E8F0] hover:bg-gray-50 transition-colors"
+                  style={{ fontFamily: "Syne, sans-serif" }}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmAddProduct}
+                  className="flex-1 py-2 rounded-lg text-xs font-bold text-white bg-[#FF6B1A] hover:bg-[#FF8534] transition-colors"
+                  style={{ fontFamily: "Syne, sans-serif" }}
+                >
+                  Tambah
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

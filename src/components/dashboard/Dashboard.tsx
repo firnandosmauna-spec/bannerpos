@@ -73,12 +73,15 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
     fetchMachineLogs,
   } = useMasterData();
 
-  const handleAddProduct = (product: Product) => {
+  const handleAddProduct = (product: Product, customWidth = 100, customHeight = 100, customPricePerM2?: number) => {
+    const activePricePerM2 = customPricePerM2 !== undefined ? customPricePerM2 : product.pricePerM2;
+    
     const existingIndex = cartItems.findIndex(
       (item) =>
         item.productId === product.id &&
-        item.width === 100 &&
-        item.height === 100
+        item.width === customWidth &&
+        item.height === customHeight &&
+        item.pricePerM2 === activePricePerM2
     );
 
     if (existingIndex !== -1) {
@@ -93,26 +96,26 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
       };
       setCartItems(updated);
     } else {
-      const defaultW = 100;
-      const defaultH = 100;
-      const area = (defaultW / 100) * (defaultH / 100);
+      const area = (customWidth / 100) * (customHeight / 100);
       const newItem: CartItem = {
         id: `${product.id}-${Date.now()}`,
         productId: product.id,
         productName: product.name,
-        width: defaultW,
-        height: defaultH,
+        width: customWidth,
+        height: customHeight,
         quantity: 1,
         material: MATERIALS[0],
         finishing: FINISHINGS[0],
         designNote: "",
-        pricePerM2: product.pricePerM2,
+        pricePerM2: activePricePerM2,
         unit: product.unit,
-        totalPrice: area * product.pricePerM2 + (cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.fee || 0) : 0),
+        totalPrice: area * activePricePerM2 + (cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.fee || 0) : 0),
         hasDesignRequest: cartItems.length === 0 && (initialDesignData?.hasDesign ?? false),
         designFee: cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.fee || 0) : 0,
-        designNote: cartItems.length === 0 && initialDesignData?.hasDesign ? (initialDesignData?.note || "") : "",
       };
+      if (cartItems.length === 0 && initialDesignData?.hasDesign) {
+        newItem.designNote = initialDesignData?.note || "";
+      }
       setCartItems((prev) => [...prev, newItem]);
     }
   };
