@@ -163,79 +163,79 @@ export default function ProductCatalog({ products, onAddProduct }: ProductCatalo
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-[#FFFFFF] rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+              className="bg-[#FFFFFF] rounded-xl shadow-xl w-full max-w-[280px] overflow-hidden"
               style={{ border: "1px solid #E2E8F0" }}
             >
-              <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
-                <h3 className="font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
+              <div className="px-3 py-2 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
+                <h3 className="text-xs font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
                   Tentukan Ukuran & Harga
                 </h3>
                 <button
                   onClick={() => setSelectedProductForSize(null)}
-                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-gray-200 text-[#64748B] transition-colors"
+                  className="w-5 h-5 rounded flex items-center justify-center hover:bg-gray-200 text-[#64748B] transition-colors"
                 >
-                  <X size={16} />
+                  <X size={14} />
                 </button>
               </div>
 
-              <div className="p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-[#F8FAFC] flex items-center justify-center border border-[#E2E8F0] text-xl">
+              <div className="p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] flex items-center justify-center border border-[#E2E8F0] text-lg">
                     {selectedProductForSize.icon}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
+                    <h4 className="text-xs font-bold text-[#1E293B] leading-tight" style={{ fontFamily: "Syne, sans-serif" }}>
                       {selectedProductForSize.name}
                     </h4>
-                    <p className="text-[10px] text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                      Base: Rp {formatPrice(selectedProductForSize.pricePerM2)} / {selectedProductForSize.unit}
+                    <p className="text-[9px] text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                      Base: Rp {formatPrice(selectedProductForSize.pricePerM2)}/{selectedProductForSize.unit}
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <label className="block text-[9px] mb-0.5 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                       Lebar (cm)
                     </label>
                     <input
                       type="number"
                       value={customWidth}
                       onChange={(e) => setCustomWidth(e.target.value)}
-                      className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                      className="w-full rounded-md px-2 py-1.5 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
                       style={{ fontFamily: "JetBrains Mono, monospace" }}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <label className="block text-[9px] mb-0.5 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                       Tinggi (cm)
                     </label>
                     <input
                       type="number"
                       value={customHeight}
                       onChange={(e) => setCustomHeight(e.target.value)}
-                      className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                      className="w-full rounded-md px-2 py-1.5 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
                       style={{ fontFamily: "JetBrains Mono, monospace" }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] mb-1 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                  <label className="block text-[9px] mb-0.5 font-bold text-[#8A8A95]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                     Harga per {selectedProductForSize.unit} (Rp)
                   </label>
                   <input
                     type="number"
                     value={customPrice}
                     onChange={(e) => setCustomPrice(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
+                    className="w-full rounded-md px-2 py-1.5 text-xs outline-none bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]"
                     style={{ fontFamily: "JetBrains Mono, monospace" }}
                   />
                 </div>
                 
-                <div className="bg-[#FF6B1A]/5 rounded-xl p-3 flex justify-between items-center border border-[#FF6B1A]/20">
-                  <span className="text-[10px] font-bold text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Estimasi Total Harga</span>
-                  <span className="text-sm font-black text-[#FF6B1A]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+                <div className="bg-[#FF6B1A]/5 rounded-lg p-2 flex justify-between items-center border border-[#FF6B1A]/20">
+                  <span className="text-[10px] font-bold text-[#64748B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Total</span>
+                  <span className="text-[13px] font-black text-[#FF6B1A]" style={{ fontFamily: "JetBrains Mono, monospace" }}>
                     Rp {formatPrice(
                       ((typeof customWidth === "string" ? parseFloat(customWidth) || 0 : customWidth) / 100) *
                       ((typeof customHeight === "string" ? parseFloat(customHeight) || 0 : customHeight) / 100) *
@@ -245,17 +245,17 @@ export default function ProductCatalog({ products, onAddProduct }: ProductCatalo
                 </div>
               </div>
 
-              <div className="px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-2">
+              <div className="px-3 py-2 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-2">
                 <button
                   onClick={() => setSelectedProductForSize(null)}
-                  className="flex-1 py-2 rounded-lg text-xs font-bold text-[#64748B] bg-white border border-[#E2E8F0] hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-[#64748B] bg-white border border-[#E2E8F0] hover:bg-gray-50 transition-colors"
                   style={{ fontFamily: "Syne, sans-serif" }}
                 >
                   Batal
                 </button>
                 <button
                   onClick={confirmAddProduct}
-                  className="flex-1 py-2 rounded-lg text-xs font-bold text-white bg-[#FF6B1A] hover:bg-[#FF8534] transition-colors"
+                  className="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-white bg-[#FF6B1A] hover:bg-[#FF8534] transition-colors"
                   style={{ fontFamily: "Syne, sans-serif" }}
                 >
                   Tambah
