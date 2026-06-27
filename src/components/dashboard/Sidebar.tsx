@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Monitor, Box, FolderTree, Layers, ClipboardList, 
@@ -17,6 +18,17 @@ interface SidebarProps {
 export default function Sidebar({ currentView, onViewChange, onLogout, role = "kasir", permissions = [] }: SidebarProps) {
   const isAdmin = role.toLowerCase() === "admin";
   const hasPermission = (id: string) => isAdmin || permissions.includes(id);
+
+  const [companyName, setCompanyName] = useState("BANNERPOS");
+
+  useEffect(() => {
+    const loadCompany = () => {
+      setCompanyName(localStorage.getItem("companyName") || "BANNERPOS");
+    };
+    loadCompany();
+    window.addEventListener("companyProfileUpdated", loadCompany);
+    return () => window.removeEventListener("companyProfileUpdated", loadCompany);
+  }, []);
 
   const allMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -50,12 +62,14 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
     <div className="hidden lg:flex flex-col w-56 bg-[#FFFFFF] border-r border-[#E2E8F0] h-full overflow-hidden shadow-xl z-20">
       <div className="p-5 border-b border-[#E2E8F0] bg-gradient-to-br from-white to-orange-50/30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FF6B1A] flex items-center justify-center shadow-lg shadow-orange-500/30 rotate-3">
-            <span className="text-lg font-black text-[#FFFFFF]">B</span>
+          <div className="w-9 h-9 rounded-xl bg-[#FF6B1A] flex items-center justify-center shadow-lg shadow-orange-500/30 rotate-3 shrink-0">
+            <span className="text-lg font-black text-[#FFFFFF]">{companyName.charAt(0).toUpperCase()}</span>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-[#1E293B] tracking-tight leading-none" style={{ fontFamily: "Syne, sans-serif" }}>BANNER<span className="text-[#FF6B1A]">POS</span></h1>
-            <p className="text-[9px] text-[#64748B] uppercase tracking-widest mt-1 font-bold opacity-70">Premium Printing</p>
+          <div className="min-w-0">
+            <h1 className="text-base lg:text-lg font-bold text-[#1E293B] tracking-tight leading-none truncate" style={{ fontFamily: "Syne, sans-serif" }}>
+              {companyName}
+            </h1>
+            <p className="text-[9px] text-[#64748B] uppercase tracking-widest mt-1 font-bold opacity-70 truncate">Premium Printing</p>
           </div>
         </div>
       </div>

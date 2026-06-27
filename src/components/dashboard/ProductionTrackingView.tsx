@@ -122,7 +122,7 @@ export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackin
       </div>
 
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <AnimatePresence mode="popLayout">
             {filteredOrders.map((order) => {
               const config = getStatusConfig(order.status);
@@ -133,52 +133,51 @@ export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackin
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-white rounded-3xl border border-[#E2E8F0] overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col"
+                  className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col"
                 >
-                  <div className="p-5 flex-1">
-                    <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 flex-1">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
-                        <span className="text-[10px] font-black text-[#94A3B8] uppercase tracking-widest">No. Order</span>
-                        <h4 className="text-lg font-bold text-[#FF6B1A]">{order.order_no}</h4>
+                        <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest">No. Order</span>
+                        <h4 className="text-sm font-bold text-[#FF6B1A]">{order.order_no}</h4>
                       </div>
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-white ${config.color}`}>
+                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold text-white ${config.color}`}>
                         {config.icon}
                         {config.label.toUpperCase()}
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       <div>
-                        <span className="text-[10px] font-black text-[#94A3B8] uppercase tracking-widest">Detail Pesanan</span>
-                        <p className="text-sm text-[#1E293B] font-medium mt-1 leading-relaxed">{order.items_summary}</p>
+                        <p className="text-[11px] text-[#1E293B] font-medium leading-tight">{order.items_summary}</p>
                       </div>
 
-                      <div className="flex items-center gap-4 py-3 border-y border-dashed border-[#E2E8F0]">
-                        <div className="flex items-center gap-2">
-                          <Clock size={14} className="text-[#94A3B8]" />
-                          <span className="text-xs text-[#64748B]">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</span>
+                      <div className="flex items-center gap-3 pt-2 border-t border-dashed border-[#E2E8F0]">
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} className="text-[#94A3B8]" />
+                          <span className="text-[10px] text-[#64748B]">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <div className="flex items-center gap-2 border-l border-[#E2E8F0] pl-4">
-                          <User size={14} className="text-[#94A3B8]" />
-                          <span className="text-xs text-[#64748B]">Pelanggan Umum</span>
+                        <div className="flex items-center gap-1 border-l border-[#E2E8F0] pl-3">
+                          <User size={12} className="text-[#94A3B8]" />
+                          <span className="text-[10px] text-[#64748B]">Pelanggan Umum</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-[#F8FAFC] flex gap-2">
+                  <div className="p-2 bg-[#F8FAFC] flex gap-2">
                     <button 
                       onClick={() => onPrintSPK && onPrintSPK(order)}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition-all text-xs font-bold"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition-all text-[10px] font-bold"
                     >
-                      <Printer size={14} /> Cetak SPK
+                      <Printer size={12} /> Cetak SPK
                     </button>
                     {config.next && (
                       <button 
                         onClick={() => updateStatus(order.id, config.next!)}
-                        className="flex-[1.5] flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1E293B] text-white hover:bg-black transition-all text-xs font-bold shadow-lg shadow-gray-200"
+                        className="flex-[1.5] flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#1E293B] text-white hover:bg-black transition-all text-[10px] font-bold shadow-sm"
                       >
-                        {config.nextLabel} <ChevronRight size={14} />
+                        {config.nextLabel} <ChevronRight size={12} />
                       </button>
                     )}
                   </div>

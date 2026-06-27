@@ -47,17 +47,17 @@ export default function MasterProduk({
     }).format(price);
 
   return (
-    <div className="flex flex-col h-full bg-[#FFFFFF] p-4 lg:p-6 overflow-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="flex flex-col h-full bg-[#FFFFFF] p-3 lg:p-4 overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
           <h2
-            className="text-xl lg:text-2xl font-bold"
+            className="text-lg lg:text-xl font-bold"
             style={{ fontFamily: "Syne, sans-serif", color: "#1E293B" }}
           >
             Master Produk
           </h2>
           <p
-            className="text-xs lg:text-sm"
+            className="text-[11px] lg:text-xs"
             style={{ fontFamily: "Space Grotesk, sans-serif", color: "#64748B" }}
           >
             Kelola data produk dan harga layanan
@@ -88,10 +88,10 @@ export default function MasterProduk({
       </div>
 
       {/* Search Bar */}
-      <div className="relative mb-6">
+      <div className="relative mb-4">
         <Search
-          size={16}
-          className="absolute left-4 top-1/2 -translate-y-1/2"
+          size={14}
+          className="absolute left-3 top-1/2 -translate-y-1/2"
           style={{ color: "#64748B" }}
         />
         <input
@@ -99,7 +99,7 @@ export default function MasterProduk({
           placeholder="Cari..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-11 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#0EA5E9] transition-all shadow-sm"
+          className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#1E293B] outline-none focus:border-[#0EA5E9] transition-all shadow-sm"
           style={{ fontFamily: "Space Grotesk, sans-serif" }}
         />
       </div>
@@ -110,20 +110,20 @@ export default function MasterProduk({
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-[#F8FAFC] z-10 border-b border-[#E2E8F0]">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Produk</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Kategori</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Harga</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Satuan</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-[#64748B] uppercase tracking-wider">Produk</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-[#64748B] uppercase tracking-wider">Kategori</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-[#64748B] uppercase tracking-wider">Harga</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-[#64748B] uppercase tracking-wider">Satuan</th>
+                <th className="px-4 py-2.5 text-[9px] font-bold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
               {filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
                         style={{
                           backgroundColor: product.color + "18",
                           border: `1px solid ${product.color}30`,
@@ -132,18 +132,18 @@ export default function MasterProduk({
                         {product.icon}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-[#1E293B] text-xs truncate" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                        <p className="font-bold text-[#1E293B] text-[11px] truncate" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                           {product.name}
                         </p>
-                        <p className="text-[10px] text-[#64748B] truncate" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                        <p className="text-[9px] text-[#64748B] truncate" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                           {product.description}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2">
                     <span
-                      className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider whitespace-nowrap"
+                      className="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider whitespace-nowrap"
                       style={{
                         backgroundColor: "#F8FAFC",
                         color: "#64748B",
@@ -154,25 +154,25 @@ export default function MasterProduk({
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-mono text-[#1E293B] text-xs">
+                  <td className="px-4 py-2 font-mono text-[#1E293B] text-[11px]">
                     {formatPrice(product.pricePerM2)}
                   </td>
-                  <td className="px-6 py-4 text-[#8A8A95] text-xs" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                  <td className="px-4 py-2 text-[#8A8A95] text-[11px]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                     {product.unit}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-1">
                       <button
                         onClick={() => handleOpenEdit(product)}
-                        className="p-1.5 rounded-lg hover:bg-[#0EA5E9]/10 text-[#64748B] hover:text-[#0EA5E9] transition-all"
+                        className="p-1 rounded-lg hover:bg-[#0EA5E9]/10 text-[#64748B] hover:text-[#0EA5E9] transition-all"
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={12} />
                       </button>
                       <button
                         onClick={() => onDeleteProduct(product.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-[#64748B] hover:text-red-500 transition-all"
+                        className="p-1 rounded-lg hover:bg-red-50 text-[#64748B] hover:text-red-500 transition-all"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   </td>
@@ -248,21 +248,21 @@ function ProductModal({
         className="w-full max-w-lg bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-          <h3 className="text-lg font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
+        <div className="flex justify-between items-center px-5 py-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+          <h3 className="text-base font-bold text-[#1E293B]" style={{ fontFamily: "Syne, sans-serif" }}>
             {product ? "Edit Produk" : "Tambah Produk Baru"}
           </h3>
           <button onClick={onClose} className="text-[#64748B] hover:text-[#1E293B]">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#64748B] uppercase">Nama Produk</label>
+        <div className="p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] uppercase">Nama Produk</label>
               <div className="relative">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={14} />
+                <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#64748B]" size={12} />
                 <input
                   type="text"
                   value={formData.name}
@@ -348,26 +348,26 @@ function ProductModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#64748B] uppercase">Deskripsi Singkat</label>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-[#64748B] uppercase">Deskripsi Singkat</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#0EA5E9] h-20 resize-none"
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-[11px] text-[#1E293B] outline-none focus:border-[#0EA5E9] h-14 resize-none"
             />
           </div>
         </div>
 
-        <div className="p-6 border-t border-[#E2E8F0] flex gap-3">
+        <div className="p-5 border-t border-[#E2E8F0] flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-[#E2E8F0] text-[#1E293B] hover:bg-[#F8FAFC] transition-all"
+            className="flex-1 px-3 py-2 rounded-xl text-xs font-medium border border-[#E2E8F0] text-[#1E293B] hover:bg-[#F8FAFC] transition-all"
           >
             Batal
           </button>
           <button
             onClick={() => onSave(formData)}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold bg-[#0EA5E9] text-[#FFFFFF] hover:bg-[#38BDF8] transition-all shadow-md shadow-blue-500/20"
+            className="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-[#0EA5E9] text-[#FFFFFF] hover:bg-[#38BDF8] transition-all shadow-md shadow-blue-500/20"
           >
             Simpan Produk
           </button>

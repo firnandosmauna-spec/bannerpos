@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, ChevronDown, ChevronUp, Plus, Minus, ShoppingBag } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp, Plus, Minus, ShoppingBag, Play, Pause, Square } from "lucide-react";
 import { CartItem, MATERIALS, FINISHINGS } from "@/types/pos";
 
 interface CartPanelProps {
@@ -26,6 +26,8 @@ export default function CartPanel({
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [manualInvoiceNo, setManualInvoiceNo] = useState("");
 
+  const designRatePerMinute = parseInt(localStorage.getItem("designRatePerMinute") || "1000"); // Default 1000/menit
+
   const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
   const discountAmount = (subtotal * discount) / 100;
   const total = subtotal - discountAmount;
@@ -44,6 +46,18 @@ export default function CartPanel({
     const designFee = item.hasDesignRequest ? (item.designFee || 0) : 0;
     return basePrice + designFee;
   };
+
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const hasRunningTimer = items.some(i => i.isDesignTimerRunning);
+    if (!hasRunningTimer) return;
+
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [items]);
 
   const updateItemAndRecalc = (id: string, updates: Partial<CartItem>) => {
     const item = items.find((i) => i.id === id);
@@ -78,6 +92,11 @@ export default function CartPanel({
 
   const paymentMethods = ["Tunai", "QRIS", "DP", "Piutang"] as const;
 
+  const prefix = localStorage.getItem("autoInvoicePrefix") || "ORD-";
+  let counter = parseInt(localStorage.getItem("currentInvoiceCounter") || "1");
+  if (isNaN(counter)) counter = 1;
+  const nextInvoiceNo = `${prefix}${String(counter).padStart(4, "0")}`;
+
   return (
     <div
       className="flex flex-col h-full bg-[#FFFFFF] border-t lg:border-t-0 lg:border-l border-[#E2E8F0]"
@@ -86,16 +105,24 @@ export default function CartPanel({
       <div
         className="flex items-center justify-between px-3 py-2 border-b border-[#E2E8F0]"
       >
-        <h2
-          className="text-base font-bold"
-          style={{
-            fontFamily: "Syne, sans-serif",
-            color: "#1E293B",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          Keranjang Order
-        </h2>
+        <div className="flex flex-col">
+          <h2
+            className="text-base font-bold leading-tight"
+            style={{
+              fontFamily: "Syne, sans-serif",
+              color: "#1E293B",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Keranjang Order
+          </h2>
+          <span 
+            className="text-[10px] font-bold text-[#FF6B1A] mt-0.5"
+            style={{ fontFamily: "JetBrains Mono, monospace" }}
+          >
+            #{manualInvoiceNo.trim() || nextInvoiceNo}
+          </span>
+        </div>
         <span
           className="text-xs font-semibold rounded-full px-2.5 py-1"
           style={{
@@ -376,12 +403,20 @@ export default function CartPanel({
                           {/* Design Request & Fee */}
                           <div className="pt-3 border-t border-[#E2E8F0] space-y-3">
                             <div className="flex items-center justify-between">
-                              <label className="flex items-center gap-2 cursor-pointer group">
-                                <div 
-                                  onClick={() => updateItemAndRecalc(item.id, { 
+                              <label 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  updateItemAndRecalc(item.id, { 
                                     hasDesignRequest: !item.hasDesignRequest, 
-                                    designFee: !item.hasDesignRequest ? 25000 : 0 
-                                  })}
+                                    designFee: !item.hasDesignRequest ? 25000 : 0,
+                                    isDesignTimerRunning: false,
+                                    designTimerElapsed: 0,
+                                    designTimerStart: null
+                                  });
+                                }}
+                                className="flex items-center gap-2 cursor-pointer group"
+                              >
+                                <div 
                                   className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                                     item.hasDesignRequest 
                                       ? 'bg-[#FF6B1A] border-[#FF6B1A]' 
@@ -395,20 +430,77 @@ export default function CartPanel({
                             </div>
 
                             {item.hasDesignRequest && (
-                              <div className="space-y-1.5">
-                                <label className="block text-[9px] text-[#8A8A95] uppercase tracking-wider font-bold">Biaya Desain (IDR)</label>
+                              <div className="space-y-3 pt-2">
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-[9px] text-[#8A8A95] uppercase tracking-wider font-bold">Biaya Desain (IDR)</label>
+                                  {/* Timer Controls */}
+                                  <div className="flex items-center gap-2">
+                                    {(() => {
+                                      const elapsed = item.isDesignTimerRunning && item.designTimerStart
+                                        ? Math.floor((now - item.designTimerStart) / 1000) + (item.designTimerElapsed || 0)
+                                        : (item.designTimerElapsed || 0);
+                                      const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                                      const secs = (elapsed % 60).toString().padStart(2, '0');
+                                      const currentFee = elapsed > 0 ? Math.max(10000, Math.ceil(elapsed / 60) * designRatePerMinute) : (item.designFee || 0);
+                                      
+                                      return (
+                                        <>
+                                          <span className="text-[10px] font-black text-[#1E293B] font-mono tracking-wider w-10 text-center">
+                                            {mins}:{secs}
+                                          </span>
+                                          {!item.isDesignTimerRunning ? (
+                                            <button 
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                updateItemAndRecalc(item.id, { isDesignTimerRunning: true, designTimerStart: Date.now() });
+                                              }}
+                                              className="w-6 h-6 flex items-center justify-center rounded bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-colors"
+                                              title="Mulai Timer"
+                                            >
+                                              <Play size={12} className="ml-0.5" />
+                                            </button>
+                                          ) : (
+                                            <button 
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                updateItemAndRecalc(item.id, { 
+                                                  isDesignTimerRunning: false, 
+                                                  designTimerElapsed: elapsed,
+                                                  designFee: currentFee
+                                                });
+                                              }}
+                                              className="w-6 h-6 flex items-center justify-center rounded bg-orange-500/10 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
+                                              title="Jeda Timer"
+                                            >
+                                              <Pause size={12} />
+                                            </button>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                </div>
+                                
                                 <input
                                   type="text"
-                                  value={item.designFee ? new Intl.NumberFormat("id-ID").format(item.designFee) : ""}
+                                  value={(() => {
+                                      const elapsed = item.isDesignTimerRunning && item.designTimerStart
+                                        ? Math.floor((now - item.designTimerStart) / 1000) + (item.designTimerElapsed || 0)
+                                        : (item.designTimerElapsed || 0);
+                                      const currentFee = item.isDesignTimerRunning && elapsed > 0 
+                                        ? Math.max(10000, Math.ceil(elapsed / 60) * designRatePerMinute) 
+                                        : (item.designFee || 0);
+                                      return currentFee > 0 ? new Intl.NumberFormat("id-ID").format(currentFee) : "";
+                                  })()}
+                                  readOnly={item.isDesignTimerRunning}
                                   onChange={(e) => {
+                                    if (item.isDesignTimerRunning) return;
                                     const val = parseInt(e.target.value.replace(/\./g, "")) || 0;
                                     updateItemAndRecalc(item.id, { designFee: val });
                                   }}
-                                  className="w-full rounded-[4px] px-2 py-1 text-[9px] outline-none"
+                                  className={`w-full rounded-[4px] px-2 py-1.5 text-[10px] outline-none ${item.isDesignTimerRunning ? 'bg-[#FF6B1A]/5 border-transparent cursor-not-allowed text-[#FF6B1A]' : 'bg-[#F8FAFC] border-[#E2E8F0] focus:border-[#FF6B1A] text-[#1E293B]'}`}
                                   style={{
-                                    backgroundColor: "#F8FAFC",
-                                    border: "1px solid #E2E8F0",
-                                    color: "#FF6B1A",
+                                    borderWidth: "1px",
                                     fontWeight: "bold",
                                     fontFamily: "JetBrains Mono, monospace",
                                   }}

@@ -51,7 +51,7 @@ export default function TopNav({
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 lg:gap-2.5">
+        <div className="hidden items-center gap-2 lg:gap-2.5">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{ backgroundColor: "#FF6B1A" }}

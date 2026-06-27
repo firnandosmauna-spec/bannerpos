@@ -30,6 +30,9 @@ export interface CartItem {
   totalPrice: number;
   hasDesignRequest?: boolean;
   designFee?: number;
+  isDesignTimerRunning?: boolean;
+  designTimerElapsed?: number;
+  designTimerStart?: number | null;
 }
 
 export interface OrderHistory {
@@ -209,40 +212,7 @@ export interface User {
   permissions?: string[];
 }
 
-export const INITIAL_MATERIALS: Material[] = [
-  { id: "1", name: "Vinyl Premium", stock: 100, unit: "roll", minStock: 10 },
-  { id: "2", name: "Vinyl Glossy", stock: 50, unit: "roll", minStock: 5 },
-  { id: "3", name: "Flexi Korea", stock: 200, unit: "m²", minStock: 50 },
-];
 
-export const INITIAL_EMPLOYEES: Employee[] = [
-  { id: "1", name: "Budi Santoso", role: "Operator Cetak", phone: "08123456789", status: "aktif" },
-  { id: "2", name: "Siti Aminah", role: "Desainer", phone: "08987654321", status: "aktif" },
-];
-
-export const INITIAL_CUSTOMERS: Customer[] = [
-  { id: "1", name: "PT Sejahtera", phone: "0215551234", address: "Jl. Industri No. 45", totalOrders: 12 },
-  { id: "2", name: "Toko Berkah", phone: "0856123456", address: "Pasar Baru Blok A", totalOrders: 5 },
-];
-
-export const INITIAL_SUPPLIERS: Supplier[] = [
-  { id: "1", name: "Supplier Vinyl Indo", contact: "Bp. Heru", phone: "021999888", address: "Kawasan Industri MM2100" },
-];
-
-export const INITIAL_USERS: User[] = [
-  { id: "1", username: "admin", name: "Administrator", role: "admin" },
-  { id: "2", username: "kasir1", name: "Rina Kasir", role: "kasir" },
-];
-
-export const INITIAL_CATEGORIES: Category[] = [
-  { id: "1", name: "Banner", description: "Layanan cetak banner outdoor/indoor" },
-  { id: "2", name: "Spanduk", description: "Layanan cetak spanduk kain/flexi" },
-  { id: "3", name: "Sticker", description: "Layanan cetak sticker dan cutting" },
-  { id: "4", name: "Neon Box", description: "Layanan pembuatan neon box akrilik" },
-  { id: "5", name: "Baliho", description: "Layanan cetak baliho ukuran besar" },
-  { id: "6", name: "MMT", description: "Layanan cetak MMT / Flexi" },
-  { id: "7", name: "Backdrop", description: "Layanan cetak backdrop event" },
-];
 
 export interface Purchase {
   id: string;
@@ -267,7 +237,4 @@ export interface Machine {
   lastService?: string;
 }
 
-export const INITIAL_MACHINES: Machine[] = [
-  { id: "1", name: "Outdoor Konica 512i", type: "Outdoor", status: "aktif" },
-  { id: "2", name: "Indoor Epson DX5", type: "Indoor", status: "aktif" },
-];
+
