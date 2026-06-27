@@ -153,6 +153,7 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
           <span className="text-[13px] font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Keluar Sistem</span>
         </button>
       </div>
+      </div>
     </>
   );
 }
