@@ -456,19 +456,23 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                   />
                 )}
                 {currentView === "production-tracking" && (
-                  <ProductionTrackingView onPrintSPK={(order) => {
-                    setPrintData({
-                      orderNo: order.order_no,
-                      kasirName,
-                      items: [{ name: order.items_summary, qty: 1, price: 0, total: 0 }],
-                      total: 0,
-                      paidAmount: 0,
-                      paymentMethod: "-",
-                      date: new Date(order.created_at),
-                      isSPK: true
-                    });
-                    setTimeout(() => window.print(), 200);
-                  }} />
+                  <ProductionTrackingView 
+                    machines={machines}
+                    employees={employees}
+                    onPrintSPK={(order) => {
+                      setPrintData({
+                        orderNo: order.order_no,
+                        kasirName,
+                        items: [{ name: order.items_summary, qty: 1, price: 0, total: 0 }],
+                        total: 0,
+                        paidAmount: 0,
+                        paymentMethod: "-",
+                        date: new Date(order.created_at),
+                        isSPK: true
+                      });
+                      setTimeout(() => window.print(), 200);
+                    }} 
+                  />
                 )}
                 {currentView === "report-transactions" && (
                   <TransactionHistoryView onPrint={(data) => {

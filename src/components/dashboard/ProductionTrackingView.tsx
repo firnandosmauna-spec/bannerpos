@@ -9,13 +9,21 @@ import { toast } from "sonner";
 
 interface ProductionTrackingViewProps {
   onPrintSPK?: (order: any) => void;
+  machines?: any[];
+  employees?: any[];
 }
 
-export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackingViewProps) {
+export default function ProductionTrackingView({ onPrintSPK, machines = [], employees = [] }: ProductionTrackingViewProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  
+  // Machine Assignment State
+  const [isMachineModalOpen, setIsMachineModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedMachine, setSelectedMachine] = useState("");
+  const [selectedOperator, setSelectedOperator] = useState("");
 
   const fetchProductionOrders = async () => {
     setLoading(true);
@@ -56,6 +64,37 @@ export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackin
       fetchProductionOrders();
     } catch (error) {
       toast.error("Gagal memperbarui status");
+    }
+  };
+
+  const handleAssignMachine = async () => {
+    if (!selectedMachine || !selectedOperator) {
+      toast.error("Pilih mesin dan operator terlebih dahulu");
+      return;
+    }
+
+    try {
+      // 1. Simpan log penggunaan mesin
+      const { error: logError } = await supabase.from("machine_logs").insert([{
+        machine_id: selectedMachine,
+        order_no: selectedOrder.order_no,
+        item_name: selectedOrder.items_summary,
+        operator_name: selectedOperator,
+        status: "Proses Cetak"
+      }]);
+
+      if (logError) throw logError;
+
+      // 2. Ubah status pesanan menjadi processing
+      await updateStatus(selectedOrder.id, "processing");
+      
+      setIsMachineModalOpen(false);
+      setSelectedOrder(null);
+      setSelectedMachine("");
+      setSelectedOperator("");
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mencatat penggunaan mesin");
     }
   };
 
@@ -174,7 +213,16 @@ export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackin
                     </button>
                     {config.next && (
                       <button 
-                        onClick={() => updateStatus(order.id, config.next!)}
+                        onClick={() => {
+                          if (config.next === "processing") {
+                            setSelectedOrder(order);
+                            setSelectedMachine("");
+                            setSelectedOperator("");
+                            setIsMachineModalOpen(true);
+                          } else {
+                            updateStatus(order.id, config.next!);
+                          }
+                        }}
                         className="flex-[1.5] flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#1E293B] text-white hover:bg-black transition-all text-[10px] font-bold shadow-sm"
                       >
                         {config.nextLabel} <ChevronRight size={12} />
@@ -194,6 +242,76 @@ export default function ProductionTrackingView({ onPrintSPK }: ProductionTrackin
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {isMachineModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsMachineModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#FFFFFF] rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-6 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                <h3 className="text-lg font-bold text-[#1E293B]">
+                  Pilih Mesin & Operator
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1">Order: {selectedOrder?.order_no}</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Mesin Cetak</label>
+                  <select 
+                    value={selectedMachine}
+                    onChange={(e) => setSelectedMachine(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#FF6B1A]"
+                  >
+                    <option value="">-- Pilih Mesin --</option>
+                    {machines.filter(m => m.status === 'aktif').map(m => (
+                      <option key={m.id} value={m.id}>{m.name} ({m.type})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Operator Cetak</label>
+                  <select 
+                    value={selectedOperator}
+                    onChange={(e) => setSelectedOperator(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#FF6B1A]"
+                  >
+                    <option value="">-- Pilih Operator --</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.name}>{emp.name} ({emp.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button 
+                    onClick={() => setIsMachineModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-bold text-[#64748B] hover:bg-[#F8FAFC]"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    onClick={handleAssignMachine}
+                    className="flex-2 px-8 py-2.5 bg-[#FF6B1A] text-white text-sm font-bold rounded-xl hover:bg-[#FFB347] transition-all shadow-lg shadow-orange-500/20"
+                  >
+                    Mulai Cetak
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

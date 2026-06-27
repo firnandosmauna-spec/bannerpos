@@ -142,7 +142,21 @@ function Modal({ item, onClose, onSave }: { item: Employee | null, onClose: () =
             <label className="text-[10px] font-bold text-[#64748B] uppercase mb-1.5 block tracking-wider">Posisi / Jabatan</label>
             <div className="relative">
               <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={14} />
-              <input type="text" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all" placeholder="Contoh: Operator Cetak" />
+              <input 
+                type="text"
+                list="role-suggestions"
+                value={formData.role} 
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })} 
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#1E293B] outline-none focus:border-[#FF6B1A] transition-all"
+                placeholder="Pilih atau ketik jabatan manual"
+              />
+              <datalist id="role-suggestions">
+                <option value="Operator Mesin" />
+                <option value="Desainer Grafis" />
+                <option value="Kasir" />
+                <option value="Admin Produksi" />
+                <option value="Manajer" />
+              </datalist>
             </div>
           </div>
           <div>

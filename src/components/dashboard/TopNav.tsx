@@ -60,25 +60,7 @@ export default function TopNav({
           <Menu size={20} />
         </button>
 
-        {/* Logo */}
-        <div className="hidden lg:flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ backgroundColor: "#FF6B1A" }}
-          >
-            <Printer size={16} color="#1A1A1F" />
-          </div>
-          <span
-            className="text-sm lg:text-base font-bold truncate hidden sm:inline-block"
-            style={{
-              fontFamily: "Syne, sans-serif",
-              color: "#1E293B",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            BANNER<span style={{ color: "#FF6B1A" }}>POS</span>
-          </span>
-        </div>
+
 
         {currentView !== "pos" && (
           <div className="flex-1 px-5 hidden lg:block">
