@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Calendar, Filter, Printer, Download, 
-  ChevronLeft, ChevronRight, Eye, RefreshCw, ShoppingBag, CreditCard
+  ChevronLeft, ChevronRight, Eye, RefreshCw, ShoppingBag, CreditCard,
+  XCircle, Trash2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -18,6 +19,8 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
   const [paymentModal, setPaymentModal] = useState<any>(null);
   const [payAmount, setPayAmount] = useState<string>("");
   const [payMethod, setPayMethod] = useState<string>("Tunai");
+  const [cancelModal, setCancelModal] = useState<any>(null);
+  const [deleteModal, setDeleteModal] = useState<any>(null);
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -75,6 +78,42 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
     } catch (err) {
       console.error(err);
       toast.error("Gagal menyimpan pelunasan");
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelModal) return;
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "batal" })
+        .eq("id", cancelModal.id);
+      
+      if (error) throw error;
+      toast.success("Transaksi berhasil dibatalkan");
+      setCancelModal(null);
+      fetchAllOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal membatalkan transaksi");
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deleteModal) return;
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", deleteModal.id);
+      
+      if (error) throw error;
+      toast.success("Transaksi berhasil dihapus");
+      setDeleteModal(null);
+      fetchAllOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menghapus transaksi");
     }
   };
 
@@ -182,14 +221,16 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase ${
-                      order.status === 'selesai' ? 'bg-green-500/10 text-green-600' : 'bg-orange-500/10 text-orange-600'
+                      order.status === 'selesai' ? 'bg-green-500/10 text-green-600' : 
+                      order.status === 'batal' ? 'bg-red-500/10 text-red-600' :
+                      'bg-orange-500/10 text-orange-600'
                     }`}>
                       {order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {order.remaining_amount > 0 && (
+                      {order.status !== 'batal' && order.remaining_amount > 0 && (
                         <button 
                           onClick={() => {
                             setPaymentModal(order);
@@ -204,23 +245,41 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                       )}
                       <button 
                         onClick={() => {
-                        if (onPrint) {
-                          onPrint({
-                            orderNo: order.order_no,
-                            kasirName: "Kasir",
-                            items: [{ name: order.items_summary, qty: 1, price: order.total_amount, total: order.total_amount }],
-                            total: order.total_amount,
-                            paidAmount: order.paid_amount,
-                            paymentMethod: order.payment_method,
-                            date: new Date(order.created_at)
-                          });
-                        }
-                      }}
-                      className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-[#FF6B1A] rounded-lg transition-all shadow-sm"
-                      title="Cetak Ulang Nota"
-                    >
-                      <Printer size={14} />
-                    </button>
+                          if (onPrint) {
+                            onPrint({
+                              orderNo: order.order_no,
+                              kasirName: "Kasir",
+                              items: [{ name: order.items_summary, qty: 1, price: order.total_amount, total: order.total_amount }],
+                              total: order.total_amount,
+                              paidAmount: order.paid_amount,
+                              paymentMethod: order.payment_method,
+                              date: new Date(order.created_at)
+                            });
+                          }
+                        }}
+                        className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-[#FF6B1A] rounded-lg transition-all shadow-sm"
+                        title="Cetak Ulang Nota"
+                      >
+                        <Printer size={14} />
+                      </button>
+                      
+                      {order.status !== 'batal' && (
+                        <button 
+                          onClick={() => setCancelModal(order)}
+                          className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-red-500 rounded-lg transition-all shadow-sm"
+                          title="Batalkan Pesanan"
+                        >
+                          <XCircle size={14} />
+                        </button>
+                      )}
+
+                      <button 
+                        onClick={() => setDeleteModal(order)}
+                        className="p-2 hover:bg-[#FFFFFF] text-[#64748B] hover:text-red-600 rounded-lg transition-all shadow-sm"
+                        title="Hapus Permanen"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -303,6 +362,86 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                   className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FF6B1A] text-white hover:bg-[#FFB347] transition-colors shadow-lg shadow-orange-500/20"
                 >
                   Proses Pelunasan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Confirmation Modal */}
+      <AnimatePresence>
+        {cancelModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 w-[320px] shadow-2xl"
+            >
+              <h3 className="text-lg font-bold text-[#1E293B] mb-2" style={{ fontFamily: "Syne, sans-serif" }}>Batalkan Transaksi?</h3>
+              <p className="text-xs text-[#64748B] mb-6">
+                Anda yakin ingin membatalkan transaksi <span className="font-bold text-[#FF6B1A]">{cancelModal.order_no}</span>? Status pesanan akan diubah menjadi batal.
+              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCancelModal(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
+                >
+                  Kembali
+                </button>
+                <button
+                  onClick={handleCancelOrder}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                >
+                  Ya, Batalkan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 w-[320px] shadow-2xl"
+            >
+              <h3 className="text-lg font-bold text-red-600 mb-2" style={{ fontFamily: "Syne, sans-serif" }}>Hapus Permanen?</h3>
+              <p className="text-xs text-[#64748B] mb-6">
+                Transaksi <span className="font-bold text-[#1E293B]">{deleteModal.order_no}</span> akan dihapus permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeleteModal(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDeleteOrder}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                >
+                  Hapus
                 </button>
               </div>
             </motion.div>
