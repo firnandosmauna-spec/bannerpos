@@ -45,6 +45,7 @@ export interface OrderHistory {
   paymentMethod: string;
   status: "selesai" | "proses" | "antrian" | "dp";
   time: string;
+  customerName?: string;
 }
 
 export const PRODUCTS: Product[] = [

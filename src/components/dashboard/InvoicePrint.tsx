@@ -15,6 +15,7 @@ interface InvoicePrintProps {
   paymentMethod: string;
   date: Date;
   isSPK?: boolean;
+  customerName?: string;
 }
 
 export default function InvoicePrint({
@@ -26,6 +27,7 @@ export default function InvoicePrint({
   paymentMethod,
   date,
   isSPK,
+  customerName,
 }: InvoicePrintProps) {
   // Ambil pengaturan dari localStorage
   const storeName = localStorage.getItem("receiptStoreName") || "BANNERPOS PERCETAKAN";
@@ -75,6 +77,12 @@ export default function InvoicePrint({
           <div className="flex justify-between">
             <span>Ksr:</span>
             <span>{kasirName}</span>
+          </div>
+        )}
+        {customerName && (
+          <div className="flex justify-between font-bold">
+            <span>Plg:</span>
+            <span>{customerName}</span>
           </div>
         )}
       </div>

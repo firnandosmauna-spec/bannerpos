@@ -189,6 +189,7 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
             <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Waktu / No. Order</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Pelanggan</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Item Pesanan</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Metode</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Total</th>
@@ -201,12 +202,17 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                 <tr key={order.id} className="hover:bg-[#F8FAFC] transition-all group">
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-[#FF6B1A]">{order.order_no}</span>
-                      <span className="text-[10px] text-[#64748B]">{new Date(order.created_at).toLocaleString("id-ID")}</span>
+                      <span className="text-xs font-bold text-[#1E293B]">{order.order_no}</span>
+                      <span className="text-[10px] text-[#64748B] mt-0.5 font-medium">{new Date(order.created_at).toLocaleString("id-ID", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xs text-[#1E293B] line-clamp-1">{order.items_summary}</span>
+                    <span className="text-xs text-[#1E293B] font-medium">{order.customer_name || '-'}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs text-[#1E293B] font-medium block max-w-[200px] truncate" title={order.items_summary}>
+                      {order.items_summary}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-[#64748B] font-medium">
                     {order.payment_method}
@@ -248,12 +254,13 @@ export default function TransactionHistoryView({ onPrint }: TransactionHistoryVi
                           if (onPrint) {
                             onPrint({
                               orderNo: order.order_no,
-                              kasirName: "Kasir",
+                              kasirName: "System",
                               items: [{ name: order.items_summary, qty: 1, price: order.total_amount, total: order.total_amount }],
                               total: order.total_amount,
                               paidAmount: order.paid_amount,
                               paymentMethod: order.payment_method,
-                              date: new Date(order.created_at)
+                              date: new Date(order.created_at),
+                              customerName: order.customer_name
                             });
                           }
                         }}

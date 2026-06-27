@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, ChevronDown, ChevronUp, Plus, Minus, ShoppingBag, Play, Pause, Square } from "lucide-react";
-import { CartItem, MATERIALS, FINISHINGS } from "@/types/pos";
+import { CartItem, Customer, MATERIALS, FINISHINGS } from "@/types/pos";
 
 interface CartPanelProps {
   items: CartItem[];
+  customers?: Customer[];
   onUpdateItem: (id: string, updates: Partial<CartItem>) => void;
   onRemoveItem: (id: string) => void;
-  onCheckout: (paymentMethod: string, paidAmount: number, manualInvoiceNo: string) => void;
-  onPreviewInvoice?: (paymentMethod: string, paidAmount: number) => void;
+  onCheckout: (paymentMethod: string, paidAmount: number, manualInvoiceNo: string, customerName: string) => void;
+  onPreviewInvoice?: (paymentMethod: string, paidAmount: number, customerName: string) => void;
 }
 
 export default function CartPanel({
   items,
+  customers = [],
   onUpdateItem,
   onRemoveItem,
   onCheckout,
@@ -25,6 +27,7 @@ export default function CartPanel({
   const [paymentError, setPaymentError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [manualInvoiceNo, setManualInvoiceNo] = useState("");
+  const [customerName, setCustomerName] = useState("");
 
   const designRatePerMinute = parseInt(localStorage.getItem("designRatePerMinute") || "1000"); // Default 1000/menit
 
@@ -84,10 +87,11 @@ export default function CartPanel({
     }
 
     setPaymentError("");
-    onCheckout(paymentMethod, paid, manualInvoiceNo);
+    onCheckout(paymentMethod, paid, manualInvoiceNo, customerName);
     setPaidAmount("");
     setDiscount(0);
     setManualInvoiceNo("");
+    setCustomerName("");
   };
 
   const paymentMethods = ["Tunai", "QRIS", "DP", "Piutang"] as const;
@@ -648,6 +652,38 @@ export default function CartPanel({
                 {formatCurrency(total)}
               </span>
             </div>
+          </div>
+
+          {/* Customer Input */}
+          <div>
+            <label
+              className="block text-xs mb-1.5"
+              style={{
+                fontFamily: "Space Grotesk, sans-serif",
+                color: "#8A8A95",
+              }}
+            >
+              Pelanggan
+            </label>
+            <input
+              type="text"
+              list="customer-list"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Pilih atau ketik nama pelanggan..."
+              className="w-full rounded-xl px-4 py-2 text-sm outline-none transition-all duration-200"
+              style={{
+                backgroundColor: "#F8FAFC",
+                border: "1px solid #E2E8F0",
+                color: "#1E293B",
+                fontFamily: "Space Grotesk, sans-serif",
+              }}
+            />
+            <datalist id="customer-list">
+              {customers.map((c) => (
+                <option key={c.id} value={c.name} />
+              ))}
+            </datalist>
           </div>
 
           {/* Manual Invoice Number Input */}

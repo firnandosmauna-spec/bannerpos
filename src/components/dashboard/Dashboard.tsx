@@ -166,7 +166,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
     fetchOrders();
   }, []);
 
-  const handleCheckout = async (paymentMethod: any, paidAmount: number, manualInvoiceNo: string = "") => {
+  const handleCheckout = async (paymentMethod: any, paidAmount: number, manualInvoiceNo: string = "", customerName: string = "") => {
     const total = cartItems.reduce((sum, i) => sum + i.totalPrice, 0);
     const itemsLabel = cartItems
       .map((i) => `${i.productName} (${i.width}×${i.height})`)
@@ -194,11 +194,31 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
       remaining_amount: Math.max(0, total - paidAmount),
       payment_method: paymentMethod,
       status: "pending", // Semua order masuk antrian produksi dulu
+      customer_name: customerName,
     };
 
     try {
+      // 1. Insert ke orders
       const { error } = await supabase.from("orders").insert([newOrder]);
       if (error) throw error;
+      
+      // 2. Simpan atau Update Pelanggan Jika Diketik Manual
+      if (customerName.trim() !== "") {
+        const existingCustomer = customers.find(c => c.name.toLowerCase() === customerName.toLowerCase());
+        if (!existingCustomer) {
+          await supabase.from("customers").insert([{
+            name: customerName,
+            phone: "-",
+            address: "-",
+            total_orders: 1
+          }]);
+        } else {
+          await supabase.from("customers")
+            .update({ total_orders: (existingCustomer.totalOrders || 0) + 1 })
+            .eq("id", existingCustomer.id);
+        }
+      }
+
       toast.success("Transaksi Berhasil!");
       fetchOrders();
       
@@ -216,6 +236,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
         total,
         paidAmount,
         paymentMethod,
+        customerName,
         date: new Date()
       });
 
@@ -350,13 +371,14 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                       <div className="w-full lg:w-[320px] flex flex-col bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm shrink-0">
                         <CartPanel
                           items={cartItems}
+                          customers={customers}
                           onUpdateItem={handleUpdateItem}
                           onRemoveItem={handleRemoveItem}
-                          onCheckout={(method, paid, manualInvoice) => {
-                            handleCheckout(method, paid, manualInvoice);
+                          onCheckout={(method, paid, manualInvoice, customerName) => {
+                            handleCheckout(method, paid, manualInvoice, customerName);
                             setPosStep("intake");
                           }}
-                          onPreviewInvoice={(method, paid) => {
+                          onPreviewInvoice={(method, paid, customerName) => {
                             if (cartItems.length === 0) return;
                             const total = cartItems.reduce((sum, i) => sum + i.totalPrice, 0);
                             setPrintData({
@@ -372,6 +394,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                               total,
                               paidAmount: paid,
                               paymentMethod: method,
+                              customerName,
                               date: new Date()
                             });
                             setTimeout(() => window.print(), 200);
