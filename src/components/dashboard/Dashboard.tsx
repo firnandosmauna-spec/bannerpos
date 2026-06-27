@@ -49,6 +49,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [posStep, setPosStep] = useState<"intake" | "transaction">("intake");
   const [initialDesignData, setInitialDesignData] = useState<{ hasDesign: boolean; fee: number; note: string } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const {
     products,
@@ -244,17 +245,24 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
   return (
     <>
       <div className="flex h-screen overflow-hidden bg-[#F8FAFC] print:hidden">
-        <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={onLogout} role={kasirRole} permissions={kasirPermissions} />
+        <Sidebar 
+          kasirName={kasirName} 
+          onLogout={onLogout} 
+          currentView={currentView} 
+          onViewChange={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }}
+          role={kasirRole} 
+          permissions={kasirPermissions}
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F1F5F9] relative">
         <TopNav 
           kasirName={kasirName} 
           onLogout={onLogout} 
-          currentView={currentView}
-          onViewChange={(view) => {
-            setCurrentView(view);
-            if (view === "pos") setPosStep("intake");
-          }}
+          currentView={currentView} 
+          onViewChange={(v) => { setCurrentView(v); setIsMobileMenuOpen(false); }} 
+          onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
 
         <div className="flex-1 overflow-hidden flex flex-col relative">
@@ -272,8 +280,8 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
             )}
           </AnimatePresence>
 
-          <main className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6">
-            {currentView === "dashboard" && (
+          <main className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-4 lg:p-5 flex flex-col">
+            {currentView === "dashboard" ? (
               <MainDashboardView 
                 stats={{
                   totalSales: formatCurrency(todaySales),
@@ -317,7 +325,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                       ))}
                     </div>
 
-                    <div className="flex flex-col lg:flex-row flex-1 gap-4 overflow-hidden min-h-[500px]">
+                    <div className="flex flex-col lg:flex-row flex-1 gap-4 lg:overflow-hidden min-h-[500px]">
                       <div className="flex flex-col flex-1 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
                         <div className="flex-1 overflow-hidden">
                           <div className="flex justify-between items-center px-4 py-2 bg-[#F8FAFC] border-b border-[#E2E8F0]">
@@ -338,7 +346,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                         </div>
                       </div>
 
-                      <div className="w-full lg:w-[320px] flex flex-col bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm">
+                      <div className="w-full lg:w-[320px] flex flex-col bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm shrink-0">
                         <CartPanel
                           items={cartItems}
                           onUpdateItem={handleUpdateItem}

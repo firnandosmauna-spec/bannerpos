@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { 
   Monitor, Box, FolderTree, Layers, ClipboardList, 
@@ -13,9 +14,11 @@ interface SidebarProps {
   onLogout: () => void;
   role?: string;
   permissions?: string[];
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ currentView, onViewChange, onLogout, role = "kasir", permissions = [] }: SidebarProps) {
+export default function Sidebar({ currentView, onViewChange, onLogout, role = "kasir", permissions = [], isOpen = false, onClose }: SidebarProps) {
   const isAdmin = role.toLowerCase() === "admin";
   const hasPermission = (id: string) => isAdmin || permissions.includes(id);
 
@@ -64,20 +67,40 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
   const menuItems = allMenuItems.filter(item => item.type === "divider" || hasPermission(item.id));
 
   return (
-    <div className="hidden lg:flex flex-col w-56 bg-[#FFFFFF] border-r border-[#E2E8F0] h-full overflow-hidden shadow-xl z-20">
-      <div className="p-5 border-b border-[#E2E8F0] bg-gradient-to-br from-white to-orange-50/30">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FF6B1A] flex items-center justify-center shadow-lg shadow-orange-500/30 rotate-3 shrink-0">
-            <span className="text-lg font-black text-[#FFFFFF]">{companyName.charAt(0).toUpperCase()}</span>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar Container */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 lg:w-56 bg-[#FFFFFF] border-r border-[#E2E8F0] h-full flex flex-col shadow-2xl lg:shadow-xl
+        transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="p-5 border-b border-[#E2E8F0] bg-gradient-to-br from-white to-orange-50/30 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B1A] flex items-center justify-center shadow-lg shadow-orange-500/30 rotate-3 shrink-0">
+              <span className="text-lg font-black text-[#FFFFFF]">{companyName.charAt(0).toUpperCase()}</span>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-base lg:text-lg font-bold text-[#1E293B] tracking-tight leading-none truncate" style={{ fontFamily: "Syne, sans-serif" }}>
+                {companyName}
+              </h1>
+              <p className="text-[9px] text-[#64748B] uppercase tracking-widest mt-1 font-bold opacity-70 truncate">Premium Printing</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-base lg:text-lg font-bold text-[#1E293B] tracking-tight leading-none truncate" style={{ fontFamily: "Syne, sans-serif" }}>
-              {companyName}
-            </h1>
-            <p className="text-[9px] text-[#64748B] uppercase tracking-widest mt-1 font-bold opacity-70 truncate">Premium Printing</p>
-          </div>
+          <button 
+            onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+          >
+            <X size={18} />
+          </button>
         </div>
-      </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
         {menuItems.map((item) => {
@@ -94,7 +117,10 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
           return (
             <button
               key={item.id}
-              onClick={() => onViewChange(item.id)}
+              onClick={() => {
+                onViewChange(item.id);
+                if (window.innerWidth < 1024 && onClose) onClose(); // Auto close on mobile
+              }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative ${
                 isActive 
                   ? 'bg-[#FF6B1A] text-[#FFFFFF] shadow-md shadow-orange-500/20 translate-x-1' 
@@ -127,6 +153,6 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
           <span className="text-[13px] font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Keluar Sistem</span>
         </button>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Printer, Clock, LogOut, ChevronDown, User } from "lucide-react";
+import { Printer, Clock, LogOut, ChevronDown, User, Menu } from "lucide-react";
 
 interface TopNavProps {
   kasirName: string;
   onLogout: () => void;
   currentView: string;
   onViewChange: (view: any) => void;
+  onToggleMenu?: () => void;
 }
 
 export default function TopNav({ 
   kasirName, 
   onLogout, 
   currentView, 
-  onViewChange 
+  onViewChange,
+  onToggleMenu
 }: TopNavProps) {
   const [time, setTime] = useState(new Date());
   const [showDropdown, setShowDropdown] = useState(false);
@@ -50,8 +52,16 @@ export default function TopNav({
           height: 52,
         }}
       >
+        {/* Mobile Hamburger Menu */}
+        <button 
+          onClick={onToggleMenu}
+          className="lg:hidden p-2 -ml-2 rounded-lg text-[#1E293B] hover:bg-slate-100 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+
         {/* Logo */}
-        <div className="hidden items-center gap-2 lg:gap-2.5">
+        <div className="hidden lg:flex items-center gap-2.5">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{ backgroundColor: "#FF6B1A" }}
