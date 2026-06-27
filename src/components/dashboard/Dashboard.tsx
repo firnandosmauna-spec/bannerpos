@@ -292,8 +292,7 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                 lowStockItems={materials.filter(m => m.stock <= m.minStock)}
                 onViewTransactions={() => setCurrentView("report-transactions")}
               />
-            )}
-            {currentView === "pos" ? (
+            ) : currentView === "pos" ? (
               <div className="flex flex-col h-full gap-6">
                 {posStep === "intake" ? (
                   <DesignIntakeView 
