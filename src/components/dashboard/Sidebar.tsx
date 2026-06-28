@@ -40,7 +40,7 @@ export default function Sidebar({ currentView, onViewChange, onLogout, role = "k
     { id: "divider1", type: "divider", label: "Manajemen Data" },
     { id: "master-produk", label: "Katalog Produk", icon: "📦" },
     { id: "master-kategori", label: "Kategori", icon: "📂" },
-    { id: "master-bahan", label: "Stok Bahan", icon: "🏗️" },
+    { id: "master-bahan", label: "Master Bahan", icon: "🏗️" },
     { id: "stock-card", label: "Kartu Stok", icon: "📑" },
     { id: "purchase-materials", label: "Pembelian Bahan", icon: "🛒" },
     { id: "master-mesin", label: "Mesin Cetak", icon: "🖨️" },
