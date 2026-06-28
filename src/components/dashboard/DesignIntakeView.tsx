@@ -60,7 +60,7 @@ export default function DesignIntakeView({ onProceed }: DesignIntakeViewProps) {
           {/* Option 1: Print Only */}
           <motion.div
             whileHover={{ y: -5 }}
-            onClick={() => setSelectedType("print")}
+            onClick={() => onProceed(null)}
             className={`cursor-pointer p-8 rounded-3xl border-2 transition-all flex flex-col items-center text-center gap-4 ${
               selectedType === "print" 
                 ? "bg-[#FFFFFF] border-[#FF6B1A] shadow-xl shadow-orange-500/10" 
@@ -183,22 +183,16 @@ export default function DesignIntakeView({ onProceed }: DesignIntakeViewProps) {
           )}
         </AnimatePresence>
 
-        <div className="flex justify-center">
-          <button
-            disabled={!selectedType}
-            onClick={() => {
-              if (selectedType === 'print') onProceed(null);
-              else onProceed({ hasDesign: true, fee: designFee, note: designNote });
-            }}
-            className={`px-12 py-4 rounded-2xl font-bold text-lg transition-all flex items-center gap-3 shadow-lg ${
-              selectedType 
-                ? "bg-[#FF6B1A] text-white hover:bg-[#FFB347] shadow-orange-500/30" 
-                : "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
-            }`}
-          >
-            Lanjut ke Transaksi <ArrowRight size={20} />
-          </button>
-        </div>
+        {selectedType === "design" && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => onProceed({ hasDesign: true, fee: designFee, note: designNote })}
+              className="px-12 py-4 rounded-2xl font-bold text-lg transition-all flex items-center gap-3 shadow-lg bg-[#FF6B1A] text-white hover:bg-[#FFB347] shadow-orange-500/30"
+            >
+              Lanjut ke Transaksi <ArrowRight size={20} />
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   );
