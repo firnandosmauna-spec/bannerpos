@@ -6,9 +6,10 @@ import { supabase } from "@/lib/supabase";
 interface ReportViewProps {
   title: string;
   type: "sales" | "purchases" | "damaged" | "profit";
+  onPrint?: (data: any, summary: any) => void;
 }
 
-export default function ReportView({ title, type }: ReportViewProps) {
+export default function ReportView({ title, type, onPrint }: ReportViewProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({ total: 0, count: 0 });
@@ -41,6 +42,8 @@ export default function ReportView({ title, type }: ReportViewProps) {
           date: new Date(p.purchase_date).toLocaleDateString("id-ID"),
           desc: `Pembelian ${p.ingredients?.name}`,
           amount: p.total_price,
+          paidAmount: p.paid_amount || 0,
+          remainingAmount: p.remaining_amount || 0,
           status: p.payment_status === "lunas" ? "Lunas" : "Hutang"
         }));
       } else {
@@ -81,7 +84,10 @@ export default function ReportView({ title, type }: ReportViewProps) {
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Filter size={14} />} Refresh
           </button>
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#FF6B1A] text-white hover:bg-[#FFB347] transition-all shadow-lg shadow-orange-500/20">
+          <button 
+            onClick={() => onPrint && onPrint(data, summary)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#FF6B1A] text-white hover:bg-[#FFB347] transition-all shadow-lg shadow-orange-500/20"
+          >
             <span className="text-sm">🖨️</span> Cetak Laporan
           </button>
         </div>
@@ -139,7 +145,17 @@ export default function ReportView({ title, type }: ReportViewProps) {
                   <tr key={i} className="hover:bg-[#F8FAFC] transition-all cursor-default">
                     <td className="px-6 py-4 text-sm text-[#1E293B] font-medium">{item.date}</td>
                     <td className="px-6 py-4 text-sm text-[#1E293B]">{item.desc}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-[#1E293B]">{formatCurrency(item.amount)}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-[#1E293B]">Tot: {formatCurrency(item.amount)}</span>
+                        {type === 'purchases' && item.paidAmount > 0 && (
+                          <span className="text-[10px] text-green-600 font-bold mt-0.5">Dibayar: {formatCurrency(item.paidAmount)}</span>
+                        )}
+                        {type === 'purchases' && item.remainingAmount > 0 && (
+                          <span className="text-[10px] text-red-500 font-bold mt-0.5">Sisa Hutang: {formatCurrency(item.remainingAmount)}</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase ${item.status === 'Lunas' ? 'bg-[#2ECC71]/10 text-[#2ECC71]' : 'bg-yellow-500/10 text-yellow-500'}`}>
                         {item.status}

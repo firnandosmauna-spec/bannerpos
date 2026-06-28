@@ -140,6 +140,29 @@ export default function CartPanel({
         </span>
       </div>
 
+      {/* Customer Input */}
+      <div className="px-3 py-2 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+        <input
+          type="text"
+          list="customer-list"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          placeholder="👤 Pilih / ketik nama pelanggan..."
+          className="w-full rounded-lg px-3 py-1.5 text-xs outline-none transition-all duration-200"
+          style={{
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E2E8F0",
+            color: "#1E293B",
+            fontFamily: "Space Grotesk, sans-serif",
+          }}
+        />
+        <datalist id="customer-list">
+          {customers.map((c) => (
+            <option key={c.id} value={c.name} />
+          ))}
+        </datalist>
+      </div>
+
       {/* Items List */}
       <div className="flex-1 overflow-y-auto px-3 py-3 custom-scrollbar">
         {items.length === 0 ? (
@@ -652,38 +675,6 @@ export default function CartPanel({
                 {formatCurrency(total)}
               </span>
             </div>
-          </div>
-
-          {/* Customer Input */}
-          <div>
-            <label
-              className="block text-xs mb-1.5"
-              style={{
-                fontFamily: "Space Grotesk, sans-serif",
-                color: "#8A8A95",
-              }}
-            >
-              Pelanggan
-            </label>
-            <input
-              type="text"
-              list="customer-list"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Pilih atau ketik nama pelanggan..."
-              className="w-full rounded-xl px-4 py-2 text-sm outline-none transition-all duration-200"
-              style={{
-                backgroundColor: "#F8FAFC",
-                border: "1px solid #E2E8F0",
-                color: "#1E293B",
-                fontFamily: "Space Grotesk, sans-serif",
-              }}
-            />
-            <datalist id="customer-list">
-              {customers.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
           </div>
 
           {/* Manual Invoice Number Input */}

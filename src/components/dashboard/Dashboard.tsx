@@ -18,6 +18,7 @@ import MasterSupplier from "./MasterSupplier";
 import MasterPengguna from "./MasterPengguna";
 import MasterKategori from "./MasterKategori";
 import ReportView from "./ReportView";
+import ReportPrint from "./ReportPrint";
 import SettingsView from "./SettingsView";
 import DesignIntakeView from "./DesignIntakeView";
 import PurchaseView from "./PurchaseView";
@@ -45,8 +46,9 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const [printData, setPrintData] = useState<any>(null);
+  const [reportPrintData, setReportPrintData] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [currentView, setCurrentView] = useState<string>("dashboard");
+  const [currentView, setCurrentView] = useState<string>("pos");
   const [posStep, setPosStep] = useState<"intake" | "transaction">("intake");
   const [initialDesignData, setInitialDesignData] = useState<{ hasDesign: boolean; fee: number; note: string } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -506,10 +508,46 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
                     setTimeout(() => window.print(), 200);
                   }} />
                 )}
-                {currentView === "report-sales" && <ReportView title="Laporan Penjualan" type="sales" />}
-                {currentView === "report-purchases" && <ReportView title="Laporan Pembelian" type="purchases" />}
-                {currentView === "report-damaged" && <ReportView title="Laporan Barang Rusak" type="damaged" />}
-                {currentView === "report-profit" && <ReportView title="Laporan Laba & Rugi" type="profit" />}
+                {currentView === "report-sales" && (
+                  <ReportView 
+                    title="Laporan Penjualan" 
+                    type="sales" 
+                    onPrint={(data, summary) => {
+                      setReportPrintData({ title: "Laporan Penjualan", type: "sales", data, summary });
+                      setTimeout(() => window.print(), 200);
+                    }}
+                  />
+                )}
+                {currentView === "report-purchases" && (
+                  <ReportView 
+                    title="Laporan Pembelian" 
+                    type="purchases" 
+                    onPrint={(data, summary) => {
+                      setReportPrintData({ title: "Laporan Pembelian", type: "purchases", data, summary });
+                      setTimeout(() => window.print(), 200);
+                    }}
+                  />
+                )}
+                {currentView === "report-damaged" && (
+                  <ReportView 
+                    title="Laporan Barang Rusak" 
+                    type="damaged" 
+                    onPrint={(data, summary) => {
+                      setReportPrintData({ title: "Laporan Barang Rusak", type: "damaged", data, summary });
+                      setTimeout(() => window.print(), 200);
+                    }}
+                  />
+                )}
+                {currentView === "report-profit" && (
+                  <ReportView 
+                    title="Laporan Laba & Rugi" 
+                    type="profit" 
+                    onPrint={(data, summary) => {
+                      setReportPrintData({ title: "Laporan Laba & Rugi", type: "profit", data, summary });
+                      setTimeout(() => window.print(), 200);
+                    }}
+                  />
+                )}
                 {currentView === "accounting-coa" && <AccountingCOA />}
                 {currentView === "accounting-journal" && <AccountingJournal />}
                 {currentView === "accounting-ledger" && <AccountingLedger />}
@@ -530,6 +568,9 @@ export default function Dashboard({ kasirName, kasirRole = "kasir", kasirPermiss
     </div>
     {printData && (
         <InvoicePrint {...printData} />
+    )}
+    {reportPrintData && (
+        <ReportPrint {...reportPrintData} />
     )}
     </>
   );

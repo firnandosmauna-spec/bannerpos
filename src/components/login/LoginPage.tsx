@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Printer, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -14,6 +14,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [companyName, setCompanyName] = useState("BANNERPOS");
+
+  useEffect(() => {
+    const loadCompany = () => {
+      setCompanyName(localStorage.getItem("companyName") || "BANNERPOS");
+    };
+    loadCompany();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,14 +127,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </div>
               <div className="text-left">
                 <h1
-                  className="text-2xl font-bold leading-tight"
+                  className="text-2xl font-bold leading-tight uppercase"
                   style={{
                     fontFamily: "Syne, sans-serif",
                     color: "#F0EDE8",
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  BANNER<span style={{ color: "#FF6B1A" }}>POS</span>
+                  {companyName.substring(0, Math.ceil(companyName.length / 2))}
+                  <span style={{ color: "#FF6B1A" }}>
+                    {companyName.substring(Math.ceil(companyName.length / 2))}
+                  </span>
                 </h1>
                 <p
                   className="text-xs"

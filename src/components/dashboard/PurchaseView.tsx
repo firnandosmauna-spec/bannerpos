@@ -29,9 +29,13 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
     supplierId: "",
     quantity: 0,
     unitPrice: 0,
+    paidAmount: 0,
     paymentStatus: "lunas" as "lunas" | "hutang",
     note: ""
   });
+  
+  const [payOffConfirm, setPayOffConfirm] = useState<Purchase | null>(null);
+  const [payOffAmount, setPayOffAmount] = useState<number>(0);
 
   const fetchPurchases = async () => {
     setLoading(true);
@@ -58,6 +62,8 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
           quantity: p.quantity,
           unitPrice: p.unit_price,
           totalPrice: p.total_price,
+          paidAmount: p.paid_amount || 0,
+          remainingAmount: p.remaining_amount || 0,
           paymentStatus: p.payment_status,
           purchaseDate: p.purchase_date,
           note: p.note || ""
@@ -83,6 +89,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
       supplierId: purchase.supplierId || "",
       quantity: purchase.quantity || 0,
       unitPrice: purchase.unitPrice || 0,
+      paidAmount: purchase.paidAmount || 0,
       paymentStatus: purchase.paymentStatus as "lunas" | "hutang",
       note: purchase.note || ""
     });
@@ -97,6 +104,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
       supplierId: "",
       quantity: 0,
       unitPrice: 0,
+      paidAmount: 0,
       paymentStatus: "lunas",
       note: ""
     });
@@ -109,6 +117,12 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
     }
 
     const totalPrice = formData.quantity * formData.unitPrice;
+    let paidAmount = formData.paidAmount;
+    if (formData.paymentStatus === "lunas") {
+      paidAmount = totalPrice;
+    }
+    const remainingAmount = Math.max(0, totalPrice - paidAmount);
+    const finalPaymentStatus = remainingAmount <= 0 ? "lunas" : "hutang";
 
     try {
       setLoading(true);
@@ -139,7 +153,9 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
             quantity: formData.quantity,
             unit_price: formData.unitPrice,
             total_price: totalPrice,
-            payment_status: formData.paymentStatus,
+            paid_amount: paidAmount,
+            remaining_amount: remainingAmount,
+            payment_status: finalPaymentStatus,
             note: formData.note
           })
           .eq("id", editingPurchase.id);
@@ -157,7 +173,9 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
             quantity: formData.quantity,
             unit_price: formData.unitPrice,
             total_price: totalPrice,
-            payment_status: formData.paymentStatus,
+            paid_amount: paidAmount,
+            remaining_amount: remainingAmount,
+            payment_status: finalPaymentStatus,
             note: formData.note,
             purchase_date: new Date().toISOString()
           }]);
@@ -216,6 +234,33 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
     }
   };
 
+  const handlePayOff = async () => {
+    if (!payOffConfirm || payOffAmount <= 0) return;
+    try {
+      setLoading(true);
+      const newPaid = (payOffConfirm.paidAmount || 0) + payOffAmount;
+      const newRemaining = payOffConfirm.totalPrice - newPaid;
+      const newStatus = newRemaining <= 0 ? "lunas" : "hutang";
+
+      const { error } = await supabase.from("purchases").update({
+        paid_amount: newPaid,
+        remaining_amount: Math.max(0, newRemaining),
+        payment_status: newStatus
+      }).eq("id", payOffConfirm.id);
+
+      if (error) throw error;
+      toast.success("Pembayaran cicilan berhasil dicatat!");
+      setPayOffConfirm(null);
+      setPayOffAmount(0);
+      fetchPurchases();
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencatat pembayaran");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = purchases.filter(p => 
     p.purchaseNo.toLowerCase().includes(search.toLowerCase()) ||
     p.materialName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -262,7 +307,7 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Bahan & Supplier</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Qty</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Harga Satuan</th>
-              <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Total</th>
+              <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Tagihan & Sisa</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest">Status</th>
               <th className="px-4 py-2 text-[9px] font-bold text-[#64748B] uppercase tracking-widest text-right">Aksi</th>
             </tr>
@@ -290,8 +335,14 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                 <td className="px-4 py-2 text-xs text-[#1E293B]">
                   {formatCurrency(item.unitPrice)}
                 </td>
-                <td className="px-4 py-2 text-xs font-black text-[#1E293B]">
-                  {formatCurrency(item.totalPrice)}
+                <td className="px-4 py-2">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-black text-[#1E293B]">Tot: {formatCurrency(item.totalPrice)}</span>
+                    <span className="text-[10px] text-green-600 font-bold">DP: {formatCurrency(item.paidAmount || 0)}</span>
+                    {item.remainingAmount !== undefined && item.remainingAmount > 0 && (
+                      <span className="text-[10px] text-red-500 font-bold">Sisa: {formatCurrency(item.remainingAmount)}</span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-2">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
@@ -305,6 +356,18 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                 </td>
                 <td className="px-4 py-2 text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {item.paymentStatus === 'hutang' && (
+                      <button
+                        onClick={() => {
+                          setPayOffConfirm(item);
+                          setPayOffAmount(item.remainingAmount || 0);
+                        }}
+                        className="p-1.5 text-white bg-[#FF6B1A] hover:bg-[#FFB347] rounded-md transition-colors mr-1"
+                        title="Bayar Cicilan/Lunas"
+                      >
+                        <DollarSign size={14} />
+                      </button>
+                    )}
                     <button
                       onClick={() => openEditModal(item)}
                       className="p-1.5 text-[#64748B] hover:text-[#0EA5E9] hover:bg-[#F8FAFC] rounded transition-colors"
@@ -423,6 +486,23 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                   </div>
                 </div>
 
+                {formData.paymentStatus === "hutang" && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Jumlah Dibayar (DP/Cicilan)</label>
+                    <input 
+                      type="number" 
+                      value={formData.paidAmount}
+                      onChange={(e) => setFormData({...formData, paidAmount: Number(e.target.value)})}
+                      className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#FF6B1A]"
+                    />
+                    {formData.quantity > 0 && formData.unitPrice > 0 && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">
+                        Sisa Hutang: {formatCurrency((formData.quantity * formData.unitPrice) - formData.paidAmount)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Catatan</label>
                   <textarea 
@@ -497,6 +577,56 @@ export default function PurchaseView({ materials, suppliers, onRefreshMaterials 
                   className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
                 >
                   {loading ? <RefreshCw size={14} className="animate-spin" /> : "Hapus Permanen"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Pay Off / Cicilan Modal */}
+      <AnimatePresence>
+        {payOffConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setPayOffConfirm(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#FFFFFF] rounded-2xl shadow-2xl p-6"
+            >
+              <h3 className="text-lg font-bold text-[#1E293B] mb-2">Bayar Cicilan Supplier</h3>
+              <p className="text-xs text-[#64748B] mb-4">
+                Pembelian <span className="font-bold text-[#1E293B]">{payOffConfirm.purchaseNo}</span> memiliki sisa hutang sebesar <span className="font-bold text-red-500">{formatCurrency(payOffConfirm.remainingAmount || 0)}</span>.
+              </p>
+              <div className="space-y-2 mb-6">
+                <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Nominal Pembayaran Sekarang</label>
+                <input 
+                  type="number" 
+                  value={payOffAmount}
+                  onChange={(e) => setPayOffAmount(Number(e.target.value))}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#FF6B1A]"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setPayOffConfirm(null)}
+                  className="flex-1 py-2.5 bg-[#F8FAFC] hover:bg-[#E2E8F0] text-[#1E293B] text-xs font-bold rounded-xl transition-colors border border-[#E2E8F0]"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handlePayOff}
+                  disabled={loading || payOffAmount <= 0}
+                  className="flex-1 py-2.5 bg-[#2ECC71] hover:bg-[#27AE60] text-white text-xs font-bold rounded-xl transition-colors shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+                >
+                  {loading ? <RefreshCw size={14} className="animate-spin" /> : "Bayar"}
                 </button>
               </div>
             </motion.div>

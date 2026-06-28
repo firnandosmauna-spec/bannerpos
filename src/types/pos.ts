@@ -226,6 +226,8 @@ export interface Purchase {
   unitPrice: number;
   totalPrice: number;
   paymentStatus: "lunas" | "hutang";
+  paidAmount?: number;
+  remainingAmount?: number;
   purchaseDate: string;
   note: string;
 }
